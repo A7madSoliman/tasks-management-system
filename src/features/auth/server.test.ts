@@ -32,6 +32,7 @@ vi.mock("next/headers", () => ({
 }));
 
 import {
+  AUTH_SESSION_MAX_AGE_SECONDS,
   authCookieNames,
   clearSession,
   getCurrentUser,
@@ -56,7 +57,9 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
   });
 
   describe("login()", () => {
-    it("posts to /auth/v1/token?grant_type=password with apikey and JSON body, storing tokens in HttpOnly cookies", async () => {
+    it("stores session-scoped access/refresh cookies with no maxAge and deletes persistence marker when rememberMe is false", async () => {
+      cookieStore.set(authCookieNames.rememberMe, { value: "1" });
+
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
         new Response(
           JSON.stringify({
@@ -95,35 +98,109 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
         }),
       );
 
-      // 2. Verify cookies were stored with HttpOnly options
+      // 2. Verify cookies were stored with session scope (no maxAge)
       expect(mockJar.set).toHaveBeenCalledTimes(2);
 
       expect(mockJar.set).toHaveBeenCalledWith(
         authCookieNames.access,
         "mock-access-token-xyz",
-        expect.objectContaining({
+        {
           httpOnly: true,
           sameSite: "lax",
+          secure: false,
           path: "/",
-          maxAge: 3600,
-        }),
+        },
       );
 
       expect(mockJar.set).toHaveBeenCalledWith(
         authCookieNames.refresh,
         "mock-refresh-token-abc",
-        expect.objectContaining({
+        {
           httpOnly: true,
           sameSite: "lax",
+          secure: false,
           path: "/",
-        }),
+        },
       );
 
-      expect(cookieStore.get(authCookieNames.access)?.httpOnly).toBe(true);
-      expect(cookieStore.get(authCookieNames.refresh)?.httpOnly).toBe(true);
+      // 3. Verify persistence marker is deleted and no maxAge in store
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
+      expect(cookieStore.get(authCookieNames.access)?.maxAge).toBeUndefined();
+      expect(cookieStore.get(authCookieNames.refresh)?.maxAge).toBeUndefined();
+      expect(cookieStore.get(authCookieNames.rememberMe)).toBeUndefined();
     });
 
-    it("throws safe error when backend rejects credentials", async () => {
+    it("stores HttpOnly SameSite=Lax Secure-in-production cookies with maxAge 30 days and marker when rememberMe is true", async () => {
+      vi.stubEnv("NODE_ENV", "production");
+
+      try {
+        vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              access_token: "mock-prod-access-token",
+              refresh_token: "mock-prod-refresh-token",
+              expires_in: 3600,
+              token_type: "bearer",
+            }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            },
+          ),
+        );
+
+        await login({
+          email: "curator@workspace.com",
+          password: "secret-password",
+          rememberMe: true,
+        });
+
+        // 3 cookies set: access, refresh, and rememberMe marker
+        expect(mockJar.set).toHaveBeenCalledTimes(3);
+
+        const expectedOptions = {
+          httpOnly: true,
+          sameSite: "lax" as const,
+          secure: true,
+          path: "/",
+          maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
+        };
+
+        expect(mockJar.set).toHaveBeenCalledWith(
+          authCookieNames.access,
+          "mock-prod-access-token",
+          expectedOptions,
+        );
+        expect(mockJar.set).toHaveBeenCalledWith(
+          authCookieNames.refresh,
+          "mock-prod-refresh-token",
+          expectedOptions,
+        );
+        expect(mockJar.set).toHaveBeenCalledWith(
+          authCookieNames.rememberMe,
+          "1",
+          expectedOptions,
+        );
+
+        expect(cookieStore.get(authCookieNames.access)?.secure).toBe(true);
+        expect(cookieStore.get(authCookieNames.access)?.maxAge).toBe(
+          AUTH_SESSION_MAX_AGE_SECONDS,
+        );
+        expect(cookieStore.get(authCookieNames.refresh)?.secure).toBe(true);
+        expect(cookieStore.get(authCookieNames.refresh)?.maxAge).toBe(
+          AUTH_SESSION_MAX_AGE_SECONDS,
+        );
+        expect(cookieStore.get(authCookieNames.rememberMe)?.value).toBe("1");
+        expect(cookieStore.get(authCookieNames.rememberMe)?.secure).toBe(true);
+        expect(cookieStore.get(authCookieNames.rememberMe)?.maxAge).toBe(
+          AUTH_SESSION_MAX_AGE_SECONDS,
+        );
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+
+    it("maps 400 credential rejection to exact 'Invalid email or password.' message", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
         new Response(
           JSON.stringify({
@@ -145,10 +222,66 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
         }),
       ).rejects.toEqual({
         status: 400,
+        message: "Invalid email or password.",
+      });
+
+      expect(mockJar.set).not.toHaveBeenCalled();
+    });
+
+    it("maps 401 credential rejection to exact 'Invalid email or password.' message", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error: "invalid_credentials",
+            error_description: "Invalid email or password",
+          }),
+          {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      );
+
+      await expect(
+        login({
+          email: "curator@workspace.com",
+          password: "wrong-password",
+          rememberMe: false,
+        }),
+      ).rejects.toEqual({
+        status: 401,
+        message: "Invalid email or password.",
+      });
+
+      expect(mockJar.set).not.toHaveBeenCalled();
+    });
+
+    it("maps 500 server rejection to safe generic error without exposing backend raw data", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error: "db_error",
+            error_description:
+              "postgres://admin:secret@10.0.0.1 failed connection",
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      );
+
+      await expect(
+        login({
+          email: "curator@workspace.com",
+          password: "password123",
+          rememberMe: false,
+        }),
+      ).rejects.toEqual({
+        status: 500,
         message: "Unable to authenticate. Check your details and try again.",
       });
 
-      // Verify no cookies were set on failure
       expect(mockJar.set).not.toHaveBeenCalled();
     });
 
@@ -238,13 +371,14 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
       expect(init?.cache).toBe("no-store");
     });
 
-    it("attempts token refresh when user lookup fails, updates cookies, and retries user lookup", async () => {
+    it("attempts token refresh when user lookup fails, updates session-scoped cookies when rememberMe is false, and retries user lookup", async () => {
       cookieStore.set(authCookieNames.access, {
         value: "expired-access-token",
       });
       cookieStore.set(authCookieNames.refresh, {
         value: "valid-refresh-token",
       });
+      // No rememberMe cookie set (session mode)
 
       const fetchSpy = vi
         .spyOn(globalThis, "fetch")
@@ -316,17 +450,28 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
         JSON.stringify({ refresh_token: "valid-refresh-token" }),
       );
 
-      // Verify cookies updated with new tokens
+      // Verify cookies updated with session-scoped options (no maxAge)
       expect(mockJar.set).toHaveBeenCalledWith(
         authCookieNames.access,
         "refreshed-access-token-999",
-        expect.objectContaining({ httpOnly: true, maxAge: 3600 }),
+        {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: false,
+          path: "/",
+        },
       );
       expect(mockJar.set).toHaveBeenCalledWith(
         authCookieNames.refresh,
         "new-refresh-token-888",
-        expect.objectContaining({ httpOnly: true }),
+        {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: false,
+          path: "/",
+        },
       );
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
 
       // Verify call 3: retried user check with refreshed access token
       const [url3, init3] = fetchSpy.mock.calls[2] ?? [];
@@ -337,12 +482,97 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
       });
     });
 
-    it("clears auth cookies and returns null when refresh attempt fails", async () => {
+    it("attempts token refresh when user lookup fails, preserves rememberMe: true (30-day maxAge and marker), and retries user lookup", async () => {
+      cookieStore.set(authCookieNames.access, {
+        value: "expired-access-token",
+      });
+      cookieStore.set(authCookieNames.refresh, {
+        value: "valid-refresh-token",
+      });
+      cookieStore.set(authCookieNames.rememberMe, {
+        value: "1",
+      });
+
+      vi.spyOn(globalThis, "fetch")
+        // 1. Initial lookup fails with 401
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ message: "JWT expired" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          }),
+        )
+        // 2. Refresh succeeds
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              access_token: "refreshed-access-token-persisted",
+              refresh_token: "new-refresh-token-persisted",
+              expires_in: 3600,
+            }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            },
+          ),
+        )
+        // 3. User retry succeeds
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              id: "user-uuid-789",
+              email: "curator@workspace.com",
+            }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            },
+          ),
+        );
+
+      const user = await getCurrentUser();
+
+      expect(user).toEqual(
+        expect.objectContaining({
+          id: "user-uuid-789",
+          email: "curator@workspace.com",
+        }),
+      );
+
+      const expectedOptions = {
+        httpOnly: true,
+        sameSite: "lax" as const,
+        secure: false,
+        path: "/",
+        maxAge: AUTH_SESSION_MAX_AGE_SECONDS,
+      };
+
+      // Verify persistent cookies and marker preserved
+      expect(mockJar.set).toHaveBeenCalledWith(
+        authCookieNames.access,
+        "refreshed-access-token-persisted",
+        expectedOptions,
+      );
+      expect(mockJar.set).toHaveBeenCalledWith(
+        authCookieNames.refresh,
+        "new-refresh-token-persisted",
+        expectedOptions,
+      );
+      expect(mockJar.set).toHaveBeenCalledWith(
+        authCookieNames.rememberMe,
+        "1",
+        expectedOptions,
+      );
+    });
+
+    it("clears all auth cookies including marker and returns null when refresh attempt fails", async () => {
       cookieStore.set(authCookieNames.access, {
         value: "expired-access-token",
       });
       cookieStore.set(authCookieNames.refresh, {
         value: "invalid-refresh-token",
+      });
+      cookieStore.set(authCookieNames.rememberMe, {
+        value: "1",
       });
 
       vi.spyOn(globalThis, "fetch")
@@ -366,11 +596,15 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
       expect(user).toBeNull();
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.access);
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.refresh);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
     });
 
     it("clears cookies and returns null when user lookup fails and no refresh token exists", async () => {
       cookieStore.set(authCookieNames.access, {
         value: "invalid-access-token",
+      });
+      cookieStore.set(authCookieNames.rememberMe, {
+        value: "1",
       });
 
       vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
@@ -385,11 +619,15 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
       expect(user).toBeNull();
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.access);
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.refresh);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
     });
 
     it("clears cookies and returns null when user response payload is malformed", async () => {
       cookieStore.set(authCookieNames.access, {
         value: "valid-access-token",
+      });
+      cookieStore.set(authCookieNames.rememberMe, {
+        value: "1",
       });
 
       vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
@@ -404,15 +642,17 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
       expect(user).toBeNull();
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.access);
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.refresh);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
     });
   });
 
   describe("clearSession()", () => {
-    it("deletes both access and refresh cookies", async () => {
+    it("deletes access, refresh, and rememberMe marker cookies", async () => {
       await clearSession();
 
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.access);
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.refresh);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
     });
   });
 

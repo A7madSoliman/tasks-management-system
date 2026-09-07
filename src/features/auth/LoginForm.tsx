@@ -2,6 +2,9 @@
 "use client";
 
 import { useState } from "react";
+import type { Route } from "next";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm, type Resolver, type FieldErrors } from "react-hook-form";
 import { loginSchema, type LoginInput } from "@/features/auth/schema";
 import { AUTH_ASSETS } from "@/features/auth/assets";
@@ -41,16 +44,8 @@ const zodLoginResolver: Resolver<LoginInput> = (values) => {
   };
 };
 
-/**
- * Isolated post-login navigation handler for Codex review.
- * No redirect is performed here because no authoritative post-login destination exists yet in the application.
- * Codex can hook into router navigation here when the post-auth routing is approved.
- */
-function handlePostLoginNavigation(): void {
-  // Post-login destination is intentionally unassigned per specification.
-}
-
 export function LoginForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -95,7 +90,7 @@ export function LoginForm() {
           (payload as { success: unknown }).success === true
         ) {
           setSuccessMessage("Signed in successfully.");
-          handlePostLoginNavigation();
+          router.replace("/project" as Route);
           return;
         }
       }
@@ -110,10 +105,21 @@ export function LoginForm() {
           "message" in payload &&
           typeof (payload as { message: unknown }).message === "string"
         ) {
-          errorMessage = (payload as { message: string }).message;
+          const serverMessage = (payload as { message: string }).message;
+          if (
+            serverMessage === "Invalid email or password." ||
+            response.status === 400 ||
+            response.status === 401
+          ) {
+            errorMessage = "Invalid email or password.";
+          }
+        } else if (response.status === 400 || response.status === 401) {
+          errorMessage = "Invalid email or password.";
         }
       } catch {
-        // Fallback to generic errorMessage
+        if (response.status === 400 || response.status === 401) {
+          errorMessage = "Invalid email or password.";
+        }
       }
 
       setFormError(errorMessage);
@@ -198,13 +204,13 @@ export function LoginForm() {
             >
               Password
             </label>
-            {/* Mobile Forgot? Link */}
-            <a
-              href="#"
-              className="text-action-primary focus-visible:ring-action-primary rounded text-[11px] font-bold hover:underline focus-visible:ring-2 focus-visible:outline-none md:hidden"
+            {/* Mobile Forgot? Button */}
+            <button
+              type="button"
+              className="text-action-primary focus-visible:ring-action-primary cursor-pointer rounded text-[11px] font-bold hover:underline focus-visible:ring-2 focus-visible:outline-none md:hidden"
             >
               Forgot?
-            </a>
+            </button>
           </div>
           <div className="relative flex items-center">
             <input
@@ -259,7 +265,7 @@ export function LoginForm() {
         <div className="flex items-center justify-between py-[8px]">
           <label
             htmlFor="login-remember-me"
-            className="inline-flex cursor-pointer items-center gap-[8px] select-none"
+            className="inline-flex cursor-pointer items-center gap-[12px] select-none md:gap-[8px]"
           >
             <input
               id="login-remember-me"
@@ -273,13 +279,13 @@ export function LoginForm() {
             </span>
           </label>
 
-          {/* Desktop Forgot Password? Link */}
-          <a
-            href="#"
-            className="text-action-primary focus-visible:ring-action-primary hidden rounded text-[14px] font-medium hover:underline focus-visible:ring-2 focus-visible:outline-none md:inline"
+          {/* Desktop Forgot Password? Button */}
+          <button
+            type="button"
+            className="text-action-primary focus-visible:ring-action-primary hidden cursor-pointer rounded text-[14px] font-medium hover:underline focus-visible:ring-2 focus-visible:outline-none md:inline"
           >
             Forgot Password?
-          </a>
+          </button>
         </div>
 
         {/* Submit Button */}
@@ -312,12 +318,12 @@ export function LoginForm() {
       {/* Footer / Sign Up Link */}
       <div className="pt-[40px] text-center text-[14px] md:mt-[32px] md:border-t md:border-[rgba(195,198,214,0.15)] md:pt-[33px]">
         <span className="text-text-muted">Don&apos;t have an account? </span>
-        <a
-          href="#"
+        <Link
+          href={"/sign-up" as Route}
           className="text-action-primary focus-visible:ring-action-primary rounded font-semibold hover:underline focus-visible:ring-2 focus-visible:outline-none"
         >
           Sign Up
-        </a>
+        </Link>
       </div>
     </div>
   );

@@ -5,6 +5,9 @@ import { loginSchema, type LoginValues } from "./schema";
 
 const ACCESS_TOKEN_COOKIE = "taskly_access_token";
 const REFRESH_TOKEN_COOKIE = "taskly_refresh_token";
+const REMEMBER_ME_COOKIE = "taskly_remember_me";
+export const AUTH_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+const REMEMBER_ME_COOKIE_VALUE = "1";
 
 type AuthTokenResponse = {
   access_token: string;
@@ -51,7 +54,10 @@ async function readSafeError(response: Response): Promise<SafeAuthError> {
   }
   return {
     status: response.status,
-    message: "Unable to authenticate. Check your details and try again.",
+    message:
+      response.status === 400 || response.status === 401
+        ? "Invalid email or password."
+        : "Unable to authenticate. Check your details and try again.",
   };
 }
 
@@ -92,25 +98,40 @@ async function requestTokens(
   };
 }
 
-async function storeTokens(tokens: AuthTokenResponse) {
+async function storeTokens(tokens: AuthTokenResponse, rememberMe: boolean) {
   const jar = await cookies();
-  jar.set(
-    ACCESS_TOKEN_COOKIE,
-    tokens.access_token,
-    cookieOptions(tokens.expires_in),
+  const options = cookieOptions(
+    rememberMe ? AUTH_SESSION_MAX_AGE_SECONDS : undefined,
   );
-  jar.set(REFRESH_TOKEN_COOKIE, tokens.refresh_token, cookieOptions());
+  jar.set(ACCESS_TOKEN_COOKIE, tokens.access_token, options);
+  jar.set(REFRESH_TOKEN_COOKIE, tokens.refresh_token, options);
+  if (rememberMe) {
+    jar.set(
+      REMEMBER_ME_COOKIE,
+      REMEMBER_ME_COOKIE_VALUE,
+      cookieOptions(AUTH_SESSION_MAX_AGE_SECONDS),
+    );
+  } else {
+    jar.delete(REMEMBER_ME_COOKIE);
+  }
 }
 
 export async function login(input: LoginValues): Promise<void> {
   await storeTokens(
     await requestTokens({ email: input.email, password: input.password }),
+    input.rememberMe,
   );
 }
 
 async function refreshSession(refreshToken: string): Promise<boolean> {
   try {
-    await storeTokens(await requestTokens({ refresh_token: refreshToken }));
+    const rememberMe =
+      (await cookies()).get(REMEMBER_ME_COOKIE)?.value ===
+      REMEMBER_ME_COOKIE_VALUE;
+    await storeTokens(
+      await requestTokens({ refresh_token: refreshToken }),
+      rememberMe,
+    );
     return true;
   } catch {
     await clearSession();
@@ -122,6 +143,7 @@ export async function clearSession(): Promise<void> {
   const jar = await cookies();
   jar.delete(ACCESS_TOKEN_COOKIE);
   jar.delete(REFRESH_TOKEN_COOKIE);
+  jar.delete(REMEMBER_ME_COOKIE);
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
@@ -168,4 +190,5 @@ export function parseLoginInput(input: unknown): LoginValues {
 export const authCookieNames = {
   access: ACCESS_TOKEN_COOKIE,
   refresh: REFRESH_TOKEN_COOKIE,
+  rememberMe: REMEMBER_ME_COOKIE,
 } as const;

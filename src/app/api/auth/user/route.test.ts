@@ -94,7 +94,7 @@ describe("GET /api/auth/user", () => {
     });
   });
 
-  it("performs token refresh on 401, updates cookies, and retries user lookup successfully", async () => {
+  it("performs token refresh on 401, updates session-scoped cookies when rememberMe marker is absent, and retries user lookup successfully", async () => {
     cookieStore.set("taskly_access_token", {
       value: "expired-access-token",
     });
@@ -152,25 +152,110 @@ describe("GET /api/auth/user", () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(3);
 
-    // Verify cookies updated
+    // Verify session-scoped cookies updated with no maxAge
+    const expectedSessionOptions = {
+      httpOnly: true,
+      sameSite: "lax" as const,
+      secure: false,
+      path: "/",
+    };
     expect(mockJar.set).toHaveBeenCalledWith(
       "taskly_access_token",
       "new-access-token-999",
-      expect.objectContaining({ httpOnly: true, maxAge: 3600 }),
+      expectedSessionOptions,
     );
     expect(mockJar.set).toHaveBeenCalledWith(
       "taskly_refresh_token",
       "new-refresh-token-888",
-      expect.objectContaining({ httpOnly: true }),
+      expectedSessionOptions,
+    );
+    expect(mockJar.delete).toHaveBeenCalledWith("taskly_remember_me");
+  });
+
+  it("performs token refresh on 401, preserves 30-day maxAge and marker when rememberMe marker is present", async () => {
+    cookieStore.set("taskly_access_token", {
+      value: "expired-access-token",
+    });
+    cookieStore.set("taskly_refresh_token", {
+      value: "valid-refresh-token",
+    });
+    cookieStore.set("taskly_remember_me", {
+      value: "1",
+    });
+
+    vi.spyOn(globalThis, "fetch")
+      // 1. Initial user lookup fails
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: "JWT expired" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      // 2. Token refresh succeeds
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: "persisted-access-token",
+            refresh_token: "persisted-refresh-token",
+            expires_in: 3600,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      )
+      // 3. Retried user lookup succeeds
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "user-123",
+            email: "curator@workspace.com",
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      );
+
+    const response = await GET();
+    expect(response.status).toBe(200);
+
+    const expectedOptions = {
+      httpOnly: true,
+      sameSite: "lax" as const,
+      secure: false,
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60,
+    };
+
+    expect(mockJar.set).toHaveBeenCalledWith(
+      "taskly_access_token",
+      "persisted-access-token",
+      expectedOptions,
+    );
+    expect(mockJar.set).toHaveBeenCalledWith(
+      "taskly_refresh_token",
+      "persisted-refresh-token",
+      expectedOptions,
+    );
+    expect(mockJar.set).toHaveBeenCalledWith(
+      "taskly_remember_me",
+      "1",
+      expectedOptions,
     );
   });
 
-  it("clears auth cookies and returns 401 { user: null } when token refresh fails", async () => {
+  it("clears all auth cookies including marker and returns 401 { user: null } when token refresh fails", async () => {
     cookieStore.set("taskly_access_token", {
       value: "expired-access-token",
     });
     cookieStore.set("taskly_refresh_token", {
       value: "expired-refresh-token",
+    });
+    cookieStore.set("taskly_remember_me", {
+      value: "1",
     });
 
     vi.spyOn(globalThis, "fetch")
@@ -197,5 +282,6 @@ describe("GET /api/auth/user", () => {
 
     expect(mockJar.delete).toHaveBeenCalledWith("taskly_access_token");
     expect(mockJar.delete).toHaveBeenCalledWith("taskly_refresh_token");
+    expect(mockJar.delete).toHaveBeenCalledWith("taskly_remember_me");
   });
 });

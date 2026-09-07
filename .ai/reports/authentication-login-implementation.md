@@ -1,68 +1,86 @@
 # Task Report
 ## What changed
 
-- Implemented Authentication Slice 1: server-backed Login only.
-- Added a shared Zod Login schema and React Hook Form client interaction.
-- Added `POST /api/auth/login` and `GET /api/auth/user` Next.js server routes.
-- Added server-only Supabase Auth calls using native `fetch`, HttpOnly cookies, one-attempt refresh, and safe session clearing.
-- Implemented responsive Login UI from Figma mobile node `1:289`, desktop node `1:351`, and Style Guide node `76:1757`.
-- Added focused schema, form, route, current-user, refresh, cookie, and token-safety tests.
-- Sign Up, Forgot Password, and Reset Password were not implemented; their links remain non-functional placeholders for this slice.
+- Completed the Login slice at `/login` against the final Acceptance Criteria.
+- Preserved the Browser → Next.js server boundary → Supabase Auth architecture, native `fetch`, Zod, React Hook Form, HttpOnly cookies, and server-managed refresh.
+- Added exact invalid-credential mapping to `Invalid email or password.` for 400/401 authentication failures.
+- Added successful client navigation with `router.replace('/project')`.
+- Added a minimal authenticated `/project` destination shell solely to prevent the authoritative redirect from landing on a 404; no Projects feature or UI was implemented.
+- Added `/sign-up` navigation and intentionally inert, accessible Forgot Password controls (`Forgot Password?` desktop and `Forgot?` mobile).
+- Implemented server-side Remember Me persistence: unchecked sessions are session-scoped; checked sessions use a centralized 30-day duration and an HttpOnly persistence marker preserved through refresh rotation.
+- Replaced temporary Figma MCP asset URLs with committed local SVG asset bytes.
+- Added/expanded Login page, form, API route, current-user/refresh, cookie, persistence, safe-error, accessibility, and token-safety tests.
+
+Final Acceptance Criteria checklist:
+
+- [x] `/login` is available.
+- [x] Email and password entry are available.
+- [x] Email format is validated before submission.
+- [x] Password is required before submission.
+- [x] Login uses POST `/auth/v1/token?grant_type=password` from the server with the required body and `apikey` header.
+- [x] Invalid credentials display exactly `Invalid email or password.`.
+- [x] Successful authentication stores the session in HttpOnly cookies.
+- [x] Successful authentication redirects to `/project` using replace navigation.
+- [x] Remember Me persists the application session for one month.
+- [x] Authenticated state survives refresh through server-side current-user lookup and refresh.
+- [x] Failed refresh clears the session safely.
+- [x] Forgot Password is displayed without functionality.
+- [x] Sign Up navigates to `/sign-up` without implementing Sign Up.
+- [x] Responsive and accessible Login behavior is covered and implemented.
 
 ## Files changed
 
-- `package.json`
-- `package-lock.json`
-- `src/app/globals.css`
-- `src/app/login/page.tsx`
-- `src/app/api/auth/login/route.ts`
-- `src/app/api/auth/user/route.ts`
-- `src/features/auth/assets.ts`
-- `src/features/auth/schema.ts`
 - `src/features/auth/server.ts`
-- `src/features/auth/LoginForm.tsx`
-- `src/features/auth/schema.test.ts`
-- `src/features/auth/LoginForm.test.tsx`
 - `src/features/auth/server.test.ts`
+- `src/features/auth/LoginForm.tsx`
+- `src/features/auth/LoginForm.test.tsx`
+- `src/features/auth/assets.ts`
+- `src/app/login/page.test.tsx`
+- `src/app/project/page.tsx`
 - `src/app/api/auth/login/route.test.ts`
 - `src/app/api/auth/user/route.test.ts`
-- `vitest.config.mts`
+- `public/assets/logo.svg`
+- `public/assets/eye.svg`
+- `public/assets/arrow-right.svg`
+- `.ai/reports/authentication-login-implementation.md`
+
+No dependency changes were made. No Sign Up, Forgot Password, or Reset Password implementation was added. This finalization creates the requested Login commit; no push, PR, or merge is performed.
 
 ## Decisions
 
-- Figma evidence: exact Login nodes `1:289` mobile and `1:351` desktop were inspected immediately before implementation; Style Guide `76:1757` supplied the verified palette, Inter typography direction, logo, and icon assets.
-- Dependencies: added `react-hook-form` for form state and `zod` for reusable client/server validation. No resolver package was added because a small strongly typed resolver uses the shared schema directly. Axios, TanStack Query, React Router, Supabase JS, Redux, sonner, and SVGR were not added.
-- Server/client boundary: `LoginForm` is the smallest Client Component for local interaction and submits to `/api/auth/login`. Secrets and token handling remain in `src/features/auth/server.ts`, imported only by server route handlers.
-- Login API: server calls `POST /auth/v1/token?grant_type=password` with server-only `apikey` and JSON `email`/`password`. The browser receives only `{ success: true }` on success.
-- Cookie/session implementation: access and refresh tokens are stored in separate `HttpOnly` cookies with `SameSite=Lax`, `Secure` in production, and `Path=/`. Tokens are never returned to client code, local/session storage, Context, Redux, logs, or reports.
-- Current-user/refresh foundation: `GET /auth/v1/user` sends the access-token Bearer header. An unsuccessful lookup makes one server-side refresh attempt through `POST /auth/v1/token?grant_type=refresh_token`; success retries user lookup, while failure clears both cookies and returns unauthenticated.
-- Validation: the shared Zod schema validates browser input through React Hook Form and is applied again at the route boundary. Backend details are normalized to a generic user-safe message; raw Supabase error text is not exposed.
-- Remember Me: the checkbox matches Figma and is submitted as UI data, but no persistence semantics were invented because the verified backend contract does not define them.
-- Post-login destination: reviewed Figma Login/prototype evidence and accepted requirements do not establish an authoritative destination. Success navigation is isolated in `handlePostLoginNavigation()` and intentionally performs no redirect.
-- Assets: UI uses exact Figma MCP SVG asset URLs isolated in `src/features/auth/assets.ts`; these URLs are temporary and should be replaced with committed downloaded/SVGR assets when the project’s asset workflow is established.
-- agy delegation: `frontend → agy` implemented only the Login page/form, responsive styling, shared-schema RHF integration, accessibility, and safe submission UI. `tests → agy` added the focused Vitest/RTL coverage. Codex reviewed both complete diffs, corrected asset URLs and server type narrowing/error normalization, and reran all gates independently.
+- Figma source of truth: desktop Login node `1:351`, mobile Login node `1:289`, and Style Guide node `76:1757` in the supplied Taskly Figma file.
+- Responsive implementation preserves the desktop card/container treatment and mobile full-page treatment, responsive field dimensions/radii, mobile Forgot placement, Remember Me arrangement, mobile arrow button, header behavior, and footer positioning using maintainable responsive utilities.
+- The `/project` destination uses a minimal authenticated shell solely to prevent a broken/404 post-login destination. It contains no Projects feature or Projects UI and redirects unauthenticated visitors back to `/login`.
+- Forgot Password uses `button type="button"` with no handler, href, API call, or navigation.
+- Remember Me uses `AUTH_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60`. The marker is HttpOnly and server-only; it preserves cookie persistence mode during server-side token refresh. Backend token validity remains authoritative.
+- Unchecked Login omits `maxAge` from access and refresh cookies. Checked Login sets `maxAge` to 30 days on access, refresh, and marker cookies. All remain HttpOnly, SameSite=Lax, Path=/, and Secure in production.
+- Assets are committed under `public/assets` and referenced with local paths. No temporary `figma.com/api/mcp/asset/...` URL remains in `src/`.
+- Accessibility review covered associated labels, email/password input types and autocomplete, announced validation/server errors, keyboard-accessible password visibility, labeled Remember Me, inert accessible Forgot buttons, keyboard-accessible Sign Up navigation, and logical form tab order.
+- `frontend → agy` was used for bounded Login UI corrections and `tests → agy` for bounded Login acceptance-test additions. Codex independently inspected the complete resulting diff, corrected test-environment mocking/formatting, and reran all gates. The relay wrappers did not emit completion records and were stopped after their edits were present; their reports were not trusted.
 
 ## Validation
 
-- `git fetch origin` — attempted; blocked because the managed workspace denied writing `.git/FETCH_HEAD`.
-- Accepted commit and planning branch verification — passed: `44a9cf2af0944b088e57785a83dbb1fba87c7772`; `docs/authentication-planning` points to that commit.
-- Feature branch — `feat/authentication`, based on the accepted planning commit.
-- `npm run lint` — passed, zero errors/warnings.
-- `npm run typecheck` — passed; Next route type generation and TypeScript completed successfully.
-- `npm run test` — passed; 6 test files and 36 tests passed.
-- `npm run build` — passed; production build completed and routes `/login`, `/api/auth/login`, and `/api/auth/user` compiled.
-- `git diff --check` — passed with no whitespace errors.
-- Tests cover Login schema required/invalid input, accessible form controls, password visibility, loading/submission, safe errors, successful Login without token exposure, native-fetch Login, HttpOnly cookie options, current-user lookup, refresh success, and refresh failure cookie clearing.
+- Branch: `feat/authentication`
+- Starting/expected HEAD: `1f2652cfab022d7a8a990660eca2df68a39444ea`
+- `pnpm@11.23.0` verified from `package.json`.
+- `pnpm lint` — passed with zero errors/warnings.
+- `pnpm typecheck` — passed; Next route types generated and TypeScript completed.
+- `pnpm test` — passed: 7 test files, 50 tests.
+- `pnpm format:check` — passed; all matched files use Prettier formatting.
+- `pnpm build` — passed; production build completed. Routes compiled: `/login`, `/api/auth/login`, `/api/auth/user`, and the bounded `/project` destination shell.
+- `pnpm check` — passed; lint, typecheck, 50 tests, format check, and build all passed in sequence.
+- `pnpm dev` — passed bounded smoke check; Next reported Ready at `http://localhost:3000`; process stopped cleanly.
+- `git diff --check` — passed with no whitespace errors; Git emitted only existing line-ending normalization warnings.
+- Security searches found no temporary Figma asset URL, `NEXT_PUBLIC` backend secret, `localStorage`, or `sessionStorage` usage in application code.
+- Clipboard copy was run with `scripts/copy-report.ps1 .ai/reports/authentication-login-implementation.md`; the report content was verified by UTF-8 clipboard round-trip.
 
 ## Issues / Risks
 
-- `git fetch origin` could not update `.git/FETCH_HEAD` because of filesystem permissions; existing local refs verified the accepted commit and planning branch.
-- Figma MCP asset URLs are short-lived remote references. The exact assets are isolated for later replacement with committed SVGR assets; no hand-authored SVGs or glyph approximations were introduced.
-- The post-login destination remains unresolved and must be decided from authoritative product/navigation evidence before a later slice or acceptance change.
-- Remember Me persistence semantics remain unresolved by the verified contract.
-- Sign Up, Forgot Password, and Reset Password remain intentionally unimplemented.
-- No implementation commit, push, or PR was created.
+- `/project` is only a bounded authenticated destination shell; the Projects feature remains intentionally unimplemented.
+- The report and test fixtures contain token-shaped placeholder strings only; runtime tokens remain server-only and are never returned to browser JavaScript.
+- No Playwright coverage was added; current Login behavior is covered with Vitest/RTL and mocked native-fetch server-boundary tests.
+- No genuine blocking issues remain for this Login slice.
 
 ## Next step
 
-Stop for review. After review approval, decide the authoritative post-login destination and asset-commit workflow before continuing the Authentication milestone with the next bounded slice.
+Login finalization is complete. Do not start Sign Up, Forgot Password, or Reset Password in this slice. The requested commit is created locally only; nothing is pushed.
