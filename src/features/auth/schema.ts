@@ -8,4 +8,3 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.input<typeof loginSchema>;
 export type LoginValues = z.output<typeof loginSchema>;
-

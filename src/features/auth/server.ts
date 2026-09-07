@@ -28,7 +28,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function getConfig(): { baseUrl: string; apiKey: string } {
   const baseUrl = process.env.SUPABASE_BASE_URL;
   const apiKey = process.env.SUPABASE_API_KEY;
-  if (!baseUrl || !apiKey) throw new Error("Authentication server configuration is missing.");
+  if (!baseUrl || !apiKey)
+    throw new Error("Authentication server configuration is missing.");
   return { baseUrl: baseUrl.replace(/\/$/, ""), apiKey };
 }
 
@@ -43,42 +44,68 @@ function cookieOptions(maxAge?: number) {
 }
 
 async function readSafeError(response: Response): Promise<SafeAuthError> {
-  try { await response.json(); } catch { /* Keep backend response details server-side. */ }
+  try {
+    await response.json();
+  } catch {
+    /* Keep backend response details server-side. */
+  }
   return {
     status: response.status,
     message: "Unable to authenticate. Check your details and try again.",
   };
 }
 
-async function requestTokens(body: Record<string, string>): Promise<AuthTokenResponse> {
+async function requestTokens(
+  body: Record<string, string>,
+): Promise<AuthTokenResponse> {
   const { baseUrl, apiKey } = getConfig();
-  const response = await fetch(`${baseUrl}/auth/v1/token?grant_type=${body.refresh_token ? "refresh_token" : "password"}`, {
-    method: "POST",
-    headers: { apikey: apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${baseUrl}/auth/v1/token?grant_type=${body.refresh_token ? "refresh_token" : "password"}`,
+    {
+      method: "POST",
+      headers: { apikey: apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    },
+  );
   if (!response.ok) throw await readSafeError(response);
   const payload: unknown = await response.json();
-  if (!isRecord(payload) || typeof payload.access_token !== "string" || typeof payload.refresh_token !== "string") {
-    throw { status: 502, message: "Authentication service returned an invalid response." } satisfies SafeAuthError;
+  if (
+    !isRecord(payload) ||
+    typeof payload.access_token !== "string" ||
+    typeof payload.refresh_token !== "string"
+  ) {
+    throw {
+      status: 502,
+      message: "Authentication service returned an invalid response.",
+    } satisfies SafeAuthError;
   }
   return {
     access_token: payload.access_token,
     refresh_token: payload.refresh_token,
-    ...(typeof payload.expires_in === "number" ? { expires_in: payload.expires_in } : {}),
-    ...(typeof payload.token_type === "string" ? { token_type: payload.token_type } : {}),
+    ...(typeof payload.expires_in === "number"
+      ? { expires_in: payload.expires_in }
+      : {}),
+    ...(typeof payload.token_type === "string"
+      ? { token_type: payload.token_type }
+      : {}),
   };
 }
 
 async function storeTokens(tokens: AuthTokenResponse) {
   const jar = await cookies();
-  jar.set(ACCESS_TOKEN_COOKIE, tokens.access_token, cookieOptions(tokens.expires_in));
+  jar.set(
+    ACCESS_TOKEN_COOKIE,
+    tokens.access_token,
+    cookieOptions(tokens.expires_in),
+  );
   jar.set(REFRESH_TOKEN_COOKIE, tokens.refresh_token, cookieOptions());
 }
 
 export async function login(input: LoginValues): Promise<void> {
-  await storeTokens(await requestTokens({ email: input.email, password: input.password }));
+  await storeTokens(
+    await requestTokens({ email: input.email, password: input.password }),
+  );
 }
 
 async function refreshSession(refreshToken: string): Promise<boolean> {
@@ -104,17 +131,19 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   if (!accessToken) return null;
 
   const { baseUrl, apiKey } = getConfig();
-  const request = () => fetch(`${baseUrl}/auth/v1/user`, {
-    headers: { apikey: apiKey, Authorization: `Bearer ${accessToken}` },
-    cache: "no-store",
-  });
-  let response = await request();
-  if (!response.ok && refreshToken && await refreshSession(refreshToken)) {
-    const refreshed = (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
-    if (refreshed) response = await fetch(`${baseUrl}/auth/v1/user`, {
-      headers: { apikey: apiKey, Authorization: `Bearer ${refreshed}` },
+  const request = () =>
+    fetch(`${baseUrl}/auth/v1/user`, {
+      headers: { apikey: apiKey, Authorization: `Bearer ${accessToken}` },
       cache: "no-store",
     });
+  let response = await request();
+  if (!response.ok && refreshToken && (await refreshSession(refreshToken))) {
+    const refreshed = (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
+    if (refreshed)
+      response = await fetch(`${baseUrl}/auth/v1/user`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${refreshed}` },
+        cache: "no-store",
+      });
   }
   if (!response.ok) {
     await clearSession();
@@ -125,11 +154,18 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     await clearSession();
     return null;
   }
-  return { id: payload.id, ...(typeof payload.email === "string" ? { email: payload.email } : {}), ...payload };
+  return {
+    id: payload.id,
+    ...(typeof payload.email === "string" ? { email: payload.email } : {}),
+    ...payload,
+  };
 }
 
 export function parseLoginInput(input: unknown): LoginValues {
   return loginSchema.parse(input);
 }
 
-export const authCookieNames = { access: ACCESS_TOKEN_COOKIE, refresh: REFRESH_TOKEN_COOKIE } as const;
+export const authCookieNames = {
+  access: ACCESS_TOKEN_COOKIE,
+  refresh: REFRESH_TOKEN_COOKIE,
+} as const;

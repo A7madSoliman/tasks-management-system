@@ -30,6 +30,7 @@ pnpm-debug.log*
 
 # environment files
 .env*
+!.env.example
 
 # vercel
 .vercel

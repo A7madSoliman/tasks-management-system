@@ -1,22 +1,35 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --color-surface-bg: #f9f9ff;
-  --color-navy: #041b3c;
-  --color-slate-muted: #4f5f7b;
-  --color-slate-secondary: #434654;
-  --color-slate-placeholder: #737685;
-  --color-input-bg: #d7e2ff;
-  --color-primary-navy: #003d9b;
-  --color-primary-blue: #0052cc;
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-background: #f9f9ff;
+  --color-surface-low: #f1f3ff;
+  --color-surface-highest: #d7e2ff;
+  --color-text-primary: #041b3c;
+  --color-text-secondary: #434654;
+  --color-text-muted: #4f5f7b;
+  --color-text-placeholder: #737685;
+  --color-action-primary: #003d9b;
+  --color-action-container: #0052cc;
   --color-border-subtle: #c3c6d6;
   --color-semantic-error: #ba1a1a;
   --color-semantic-success: #82f9be;
+  --color-semantic-warning: #ffb300;
+  --radius-control-sm: 2px;
+  --radius-control-md: 4px;
+  --radius-control-lg: 8px;
+  --radius-surface: 12px;
+  --spacing-control-sm: 48px;
+  --spacing-control-md: 56px;
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 16.5px;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 22.75px;
 }
 
 body {
-  background-color: #f9f9ff;
-  color: #041b3c;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
   font-family: var(--font-sans);
 }

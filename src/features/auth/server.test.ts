@@ -16,9 +16,11 @@ const cookieStore = new Map<string, MockCookieItem>();
 
 const mockJar = {
   get: vi.fn((name: string) => cookieStore.get(name)),
-  set: vi.fn((name: string, value: string, options?: Omit<MockCookieItem, "value">) => {
-    cookieStore.set(name, { value, ...options });
-  }),
+  set: vi.fn(
+    (name: string, value: string, options?: Omit<MockCookieItem, "value">) => {
+      cookieStore.set(name, { value, ...options });
+    },
+  ),
   delete: vi.fn((name: string) => {
     cookieStore.delete(name);
   }),
@@ -302,7 +304,9 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
 
       // Verify call 2: refresh request with refresh token
       const [url2, init2] = fetchSpy.mock.calls[1] ?? [];
-      expect(url2).toBe(`${MOCK_BASE_URL}/auth/v1/token?grant_type=refresh_token`);
+      expect(url2).toBe(
+        `${MOCK_BASE_URL}/auth/v1/token?grant_type=refresh_token`,
+      );
       expect(init2?.method).toBe("POST");
       expect(init2?.headers).toEqual({
         apikey: MOCK_API_KEY,

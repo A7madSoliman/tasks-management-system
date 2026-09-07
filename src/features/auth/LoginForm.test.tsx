@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginForm } from "./LoginForm";
 
@@ -69,7 +75,10 @@ describe("LoginForm", () => {
     expect(emailInput).toHaveAttribute("aria-invalid", "true");
     expect(emailInput).toHaveAttribute("aria-describedby", "login-email-error");
     expect(passwordInput).toHaveAttribute("aria-invalid", "true");
-    expect(passwordInput).toHaveAttribute("aria-describedby", "login-password-error");
+    expect(passwordInput).toHaveAttribute(
+      "aria-describedby",
+      "login-password-error",
+    );
   });
 
   it("renders validation error for invalid email format", async () => {
@@ -81,7 +90,9 @@ describe("LoginForm", () => {
       name: /sign in|log in/i,
     });
 
-    fireEvent.change(emailInput, { target: { value: "invalid-email-address" } });
+    fireEvent.change(emailInput, {
+      target: { value: "invalid-email-address" },
+    });
     fireEvent.change(passwordInput, { target: { value: "validpassword123" } });
     fireEvent.click(submitButton);
 
@@ -129,7 +140,9 @@ describe("LoginForm", () => {
       name: /sign in|log in/i,
     });
 
-    fireEvent.change(emailInput, { target: { value: "curator@workspace.com" } });
+    fireEvent.change(emailInput, {
+      target: { value: "curator@workspace.com" },
+    });
     fireEvent.change(passwordInput, { target: { value: "validpassword123" } });
     fireEvent.click(rememberMe);
 
@@ -268,8 +281,12 @@ describe("LoginForm", () => {
     });
 
     // Verify that neither tokens nor sensitive keys appear anywhere in the rendered DOM
-    expect(document.body.textContent).not.toContain("sensitive-jwt-access-token-example");
-    expect(document.body.textContent).not.toContain("sensitive-refresh-token-example");
+    expect(document.body.textContent).not.toContain(
+      "sensitive-jwt-access-token-example",
+    );
+    expect(document.body.textContent).not.toContain(
+      "sensitive-refresh-token-example",
+    );
     expect(document.body.textContent).not.toContain("access_token");
     expect(document.body.textContent).not.toContain("refresh_token");
   });

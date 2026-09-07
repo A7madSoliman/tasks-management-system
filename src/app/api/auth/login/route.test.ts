@@ -16,9 +16,11 @@ const cookieStore = new Map<string, MockCookieItem>();
 
 const mockJar = {
   get: vi.fn((name: string) => cookieStore.get(name)),
-  set: vi.fn((name: string, value: string, options?: Omit<MockCookieItem, "value">) => {
-    cookieStore.set(name, { value, ...options });
-  }),
+  set: vi.fn(
+    (name: string, value: string, options?: Omit<MockCookieItem, "value">) => {
+      cookieStore.set(name, { value, ...options });
+    },
+  ),
   delete: vi.fn((name: string) => {
     cookieStore.delete(name);
   }),

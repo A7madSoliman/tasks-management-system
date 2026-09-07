@@ -11,5 +11,6 @@ export const AUTH_ASSETS = {
   /** Password visibility toggle eye icon */
   eye: "https://www.figma.com/api/mcp/asset/f46a9e56-f345-4e31-b154-e54d6b7e2195.svg",
   /** Mobile primary action arrow button asset */
-  arrowRight: "https://www.figma.com/api/mcp/asset/efbdff24-1ee1-44d6-b836-5ffad593027c.svg",
+  arrowRight:
+    "https://www.figma.com/api/mcp/asset/efbdff24-1ee1-44d6-b836-5ffad593027c.svg",
 } as const;
