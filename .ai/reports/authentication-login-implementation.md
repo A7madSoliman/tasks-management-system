@@ -9,6 +9,7 @@
 - Added `/sign-up` navigation and intentionally inert, accessible Forgot Password controls (`Forgot Password?` desktop and `Forgot?` mobile).
 - Implemented server-side Remember Me persistence: unchecked sessions are session-scoped; checked sessions use a centralized 30-day duration and an HttpOnly persistence marker preserved through refresh rotation.
 - Replaced temporary Figma MCP asset URLs with committed local SVG asset bytes.
+- Applied final bounded Login visual polish: added the verified Figma-derived mail icon to the email field at both responsive breakpoints, added safe input right-padding, and preserved the exact responsive typography weights from Login nodes `1:351` and `1:289`.
 - Added/expanded Login page, form, API route, current-user/refresh, cookie, persistence, safe-error, accessibility, and token-safety tests.
 
 Final Acceptance Criteria checklist:
@@ -42,6 +43,7 @@ Final Acceptance Criteria checklist:
 - `public/assets/logo.svg`
 - `public/assets/eye.svg`
 - `public/assets/arrow-right.svg`
+- `public/assets/mail.svg`
 - `.ai/reports/authentication-login-implementation.md`
 
 No dependency changes were made. No Sign Up, Forgot Password, or Reset Password implementation was added. This finalization creates the requested Login commit; no push, PR, or merge is performed.
@@ -55,6 +57,8 @@ No dependency changes were made. No Sign Up, Forgot Password, or Reset Password 
 - Remember Me uses `AUTH_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60`. The marker is HttpOnly and server-only; it preserves cookie persistence mode during server-side token refresh. Backend token validity remains authoritative.
 - Unchecked Login omits `maxAge` from access and refresh cookies. Checked Login sets `maxAge` to 30 days on access, refresh, and marker cookies. All remain HttpOnly, SameSite=Lax, Path=/, and Secure in production.
 - Assets are committed under `public/assets` and referenced with local paths. No temporary `figma.com/api/mcp/asset/...` URL remains in `src/`.
+- The mail asset is the exported Style Guide `mail` icon from node `76:2018`, reused for both Desktop and Mobile Login as an explicit user-approved Desktop override. The email input uses `pr-[48px]` so the icon cannot overlap text.
+- Typography was verified against the exact frames: mobile labels/Forgot are Bold 700, Welcome Back/Sign In/Sign Up are SemiBold 600, Remember Me is Medium 500; desktop labels are Bold 700, Forgot Password is Medium 500, Welcome Back/Log In/Sign Up are SemiBold 600, and Remember Me is Medium 500.
 - Accessibility review covered associated labels, email/password input types and autocomplete, announced validation/server errors, keyboard-accessible password visibility, labeled Remember Me, inert accessible Forgot buttons, keyboard-accessible Sign Up navigation, and logical form tab order.
 - `frontend → agy` was used for bounded Login UI corrections and `tests → agy` for bounded Login acceptance-test additions. Codex independently inspected the complete resulting diff, corrected test-environment mocking/formatting, and reran all gates. The relay wrappers did not emit completion records and were stopped after their edits were present; their reports were not trusted.
 
@@ -70,6 +74,7 @@ No dependency changes were made. No Sign Up, Forgot Password, or Reset Password 
 - `pnpm build` — passed; production build completed. Routes compiled: `/login`, `/api/auth/login`, `/api/auth/user`, and the bounded `/project` destination shell.
 - `pnpm check` — passed; lint, typecheck, 50 tests, format check, and build all passed in sequence.
 - `pnpm dev` — passed bounded smoke check; Next reported Ready at `http://localhost:3000`; process stopped cleanly.
+- Final visual-polish validation: `pnpm lint`, `pnpm typecheck`, `pnpm test` (7 files, 50 tests), `pnpm format:check`, `pnpm build`, and `git diff --check` all passed.
 - `git diff --check` — passed with no whitespace errors; Git emitted only existing line-ending normalization warnings.
 - Security searches found no temporary Figma asset URL, `NEXT_PUBLIC` backend secret, `localStorage`, or `sessionStorage` usage in application code.
 - Clipboard copy was run with `scripts/copy-report.ps1 .ai/reports/authentication-login-implementation.md`; the report content was verified by UTF-8 clipboard round-trip.
@@ -79,7 +84,7 @@ No dependency changes were made. No Sign Up, Forgot Password, or Reset Password 
 - `/project` is only a bounded authenticated destination shell; the Projects feature remains intentionally unimplemented.
 - The report and test fixtures contain token-shaped placeholder strings only; runtime tokens remain server-only and are never returned to browser JavaScript.
 - No Playwright coverage was added; current Login behavior is covered with Vitest/RTL and mocked native-fetch server-boundary tests.
-- No genuine blocking issues remain for this Login slice.
+- No genuine blocking issues remain for this Login slice. This polish did not alter authentication/session/API behavior or add dependencies.
 
 ## Next step
 

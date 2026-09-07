@@ -40,6 +40,11 @@ describe("LoginForm", () => {
     expect(emailInput).toHaveAttribute("id", "login-email");
     expect(emailInput).toHaveAttribute("aria-required", "true");
     expect(emailInput).toHaveAttribute("placeholder", "curator@workspace.com");
+    expect(emailInput.className).toContain("pr-[48px]");
+
+    const mailIcon = document.querySelector('img[src="/assets/mail.svg"]');
+    expect(mailIcon).toBeInTheDocument();
+    expect(mailIcon).toHaveAttribute("aria-hidden", "true");
 
     const passwordInput = screen.getByLabelText(/^password/i);
     expect(passwordInput).toBeInTheDocument();
@@ -70,12 +75,14 @@ describe("LoginForm", () => {
     const forgotMobileBtn = screen.getByRole("button", { name: "Forgot?" });
     expect(forgotMobileBtn).toBeInTheDocument();
     expect(forgotMobileBtn).toHaveAttribute("type", "button");
+    expect(forgotMobileBtn.className).toContain("font-bold");
 
     const forgotDesktopBtn = screen.getByRole("button", {
       name: "Forgot Password?",
     });
     expect(forgotDesktopBtn).toBeInTheDocument();
     expect(forgotDesktopBtn).toHaveAttribute("type", "button");
+    expect(forgotDesktopBtn.className).toContain("font-medium");
 
     const signUpLink = screen.getByRole("link", { name: "Sign Up" });
     expect(signUpLink).toBeInTheDocument();

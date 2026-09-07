@@ -177,11 +177,17 @@ export function LoginForm() {
               disabled={isSubmitting}
               placeholder="curator@workspace.com"
               {...register("email")}
-              className={`h-control-md rounded-control-lg bg-surface-highest text-text-primary placeholder:text-text-placeholder focus-visible:ring-action-primary md:h-control-sm md:rounded-control-sm w-full px-[16px] py-[18px] text-[16px] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 md:py-[14px] ${
+              className={`h-control-md rounded-control-lg bg-surface-highest text-text-primary placeholder:text-text-placeholder focus-visible:ring-action-primary md:h-control-sm md:rounded-control-sm w-full px-[16px] py-[18px] pr-[48px] text-[16px] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 md:py-[14px] ${
                 errors.email
                   ? "border-semantic-error focus-visible:ring-semantic-error border"
                   : ""
               }`}
+            />
+            <img
+              src={AUTH_ASSETS.mail}
+              alt=""
+              className="pointer-events-none absolute top-1/2 right-[16px] h-[16px] w-[20px] -translate-y-1/2 select-none"
+              aria-hidden="true"
             />
           </div>
           {errors.email?.message && (

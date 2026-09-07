@@ -10,6 +10,8 @@ export const AUTH_ASSETS = {
   logo: "/assets/logo.svg",
   /** Password visibility toggle eye icon */
   eye: "/assets/eye.svg",
+  /** Email field mail icon */
+  mail: "/assets/mail.svg",
   /** Mobile primary action arrow button asset */
   arrowRight: "/assets/arrow-right.svg",
 } as const;
