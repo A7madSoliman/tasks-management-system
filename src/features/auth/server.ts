@@ -1,7 +1,12 @@
 import "server-only";
 
 import { cookies } from "next/headers";
-import { loginSchema, type LoginValues } from "./schema";
+import {
+  loginSchema,
+  signUpSchema,
+  type LoginValues,
+  type SignUpValues,
+} from "./schema";
 
 const ACCESS_TOKEN_COOKIE = "taskly_access_token";
 const REFRESH_TOKEN_COOKIE = "taskly_refresh_token";
@@ -123,6 +128,40 @@ export async function login(input: LoginValues): Promise<void> {
   );
 }
 
+type SafeSignUpError = { status: number; message: string };
+
+export async function signUp(input: SignUpValues): Promise<void> {
+  const { baseUrl, apiKey } = getConfig();
+  const response = await fetch(`${baseUrl}/auth/v1/signup`, {
+    method: "POST",
+    headers: { apikey: apiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: input.email,
+      password: input.password,
+      data: {
+        name: input.name,
+        ...(input.jobTitle ? { job_title: input.jobTitle } : {}),
+      },
+    }),
+    cache: "no-store",
+  });
+
+  if (response.ok) {
+    // Deliberately discard the Auth response: Sign Up does not establish a session.
+    return;
+  }
+
+  try {
+    await response.json();
+  } catch {
+    /* Backend details remain server-only. */
+  }
+  throw {
+    status: response.status,
+    message: "Unable to create your account. Please try again.",
+  } satisfies SafeSignUpError;
+}
+
 async function refreshSession(refreshToken: string): Promise<boolean> {
   try {
     const rememberMe =
@@ -185,6 +224,10 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
 export function parseLoginInput(input: unknown): LoginValues {
   return loginSchema.parse(input);
+}
+
+export function parseSignUpInput(input: unknown): SignUpValues {
+  return signUpSchema.parse(input);
 }
 
 export const authCookieNames = {

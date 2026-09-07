@@ -14,4 +14,6 @@ export const AUTH_ASSETS = {
   mail: "/assets/mail.svg",
   /** Mobile primary action arrow button asset */
   arrowRight: "/assets/arrow-right.svg",
+  passwordRequirementPending: "/assets/sign-up-asset-2.svg",
+  passwordRequirementComplete: "/assets/sign-up-asset-3.svg",
 } as const;

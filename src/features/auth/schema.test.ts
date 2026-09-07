@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema } from "./schema";
+import {
+  getPasswordRequirementState,
+  loginSchema,
+  signUpSchema,
+} from "./schema";
 
 describe("loginSchema", () => {
   it("validates required email and password fields", () => {
@@ -102,5 +106,85 @@ describe("loginSchema", () => {
     if (falseResult.success) {
       expect(falseResult.data.rememberMe).toBe(false);
     }
+  });
+});
+
+describe("signUpSchema", () => {
+  const validInput = {
+    name: "Élodie O'Connor",
+    email: "elodie@example.com",
+    jobTitle: "Editor",
+    password: "SecurePass123!",
+    confirmPassword: "SecurePass123!",
+  };
+
+  it("accepts a Unicode name and optional job title", () => {
+    expect(signUpSchema.safeParse(validInput).success).toBe(true);
+    expect(
+      signUpSchema.safeParse({
+        name: validInput.name,
+        email: validInput.email,
+        password: validInput.password,
+        confirmPassword: validInput.confirmPassword,
+      }).success,
+    ).toBe(true);
+  });
+
+  it.each(["", "Al", "a".repeat(51), "User 123"])(
+    "rejects invalid names",
+    (name) =>
+      expect(signUpSchema.safeParse({ ...validInput, name }).success).toBe(
+        false,
+      ),
+  );
+
+  it("rejects an invalid email", () => {
+    expect(
+      signUpSchema.safeParse({ ...validInput, email: "not-an-email" }).success,
+    ).toBe(false);
+  });
+
+  it.each([
+    "Short1!",
+    "securepass123!",
+    "SECUREPASS123!",
+    "SecurePassword!",
+    "SecurePass123",
+  ])("rejects every password requirement failure", (password) =>
+    expect(
+      signUpSchema.safeParse({
+        ...validInput,
+        password,
+        confirmPassword: password,
+      }).success,
+    ).toBe(false),
+  );
+
+  it("rejects confirmation mismatches", () => {
+    expect(
+      signUpSchema.safeParse({
+        ...validInput,
+        confirmPassword: "DifferentPass123!",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("shares grouped password requirements with the live indicator state", () => {
+    expect(getPasswordRequirementState("")).toEqual({
+      hasMinimumLength: false,
+      hasUppercase: false,
+      hasLowercase: false,
+      hasDigit: false,
+      hasUppercaseLowercaseAndDigit: false,
+      hasSpecialCharacter: false,
+    });
+    expect(getPasswordRequirementState("Abcdefgh1!")).toEqual({
+      hasMinimumLength: true,
+      hasUppercase: true,
+      hasLowercase: true,
+      hasDigit: true,
+      hasUppercaseLowercaseAndDigit: true,
+      hasSpecialCharacter: true,
+    });
   });
 });
