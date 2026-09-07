@@ -186,7 +186,7 @@ export function LoginForm() {
             <img
               src={AUTH_ASSETS.mail}
               alt=""
-              className="pointer-events-none absolute top-1/2 right-[16px] h-[16px] w-[20px] -translate-y-1/2 select-none"
+              className="pointer-events-none absolute top-1/2 right-[16px] size-[20px] -translate-y-1/2 object-contain select-none"
               aria-hidden="true"
             />
           </div>

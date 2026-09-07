@@ -45,6 +45,7 @@ describe("LoginForm", () => {
     const mailIcon = document.querySelector('img[src="/assets/mail.svg"]');
     expect(mailIcon).toBeInTheDocument();
     expect(mailIcon).toHaveAttribute("aria-hidden", "true");
+    expect(mailIcon?.className).toContain("size-[20px]");
 
     const passwordInput = screen.getByLabelText(/^password/i);
     expect(passwordInput).toBeInTheDocument();
