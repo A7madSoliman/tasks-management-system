@@ -22,12 +22,14 @@ Added the minimal GitHub Actions CI workflow for the existing project quality ga
 - Workflow configuration manually reviewed locally for the required triggers, Node version, checkout, npm cache, `npm ci`, and `npm run check`; `git diff --check` passed.
 - `npm run check`: passed (lint, typecheck, 1/1 Vitest test, and production build).
 - `scripts/copy-report.ps1 .ai/reports/ci-foundation.md`: copied successfully; the final report's UTF-8 bytes matched the clipboard bytes exactly.
-- Remote CI: not run; the branch has not been pushed.
+- Commit `5fa19f2` (`chore(ci): add GitHub Actions quality gate`) was pushed to `origin/chore/ci-foundation`.
+- Remote CI: not run. The workflow does not trigger on this branch push, and creating the required pull request was blocked by GitHub integration permissions.
 
 ## Issues / Risks
 
-- Local GitHub Actions runner/syntax validator is not configured (`actionlint` and a Node YAML parser are unavailable); remote workflow execution remains unverified until a pull request or push reaches GitHub.
+- Local GitHub Actions runner/syntax validator is not configured (`actionlint` and a Node YAML parser are unavailable).
+- Pull request creation is blocked: the available GitHub connector returned `403 Resource not accessible by integration`, the GitHub CLI is not installed, and no controllable signed-in browser is available. Remote workflow execution and PR mergeability remain unverified.
 
 ## Next step
 
-Review and, when authorized, commit and push this CI-only branch to open a pull request; do not begin Authentication until this milestone is accepted.
+Grant pull-request creation access to the GitHub integration, install/authenticate the GitHub CLI, or provide a controllable signed-in browser session; then create the PR and validate its GitHub Actions result before any merge. Do not begin Authentication.
