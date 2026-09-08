@@ -73,17 +73,15 @@ describe("LoginForm", () => {
     expect(togglePasswordBtn).toBeInTheDocument();
     expect(togglePasswordBtn).toHaveAttribute("aria-pressed", "false");
 
-    const forgotMobileBtn = screen.getByRole("button", { name: "Forgot?" });
-    expect(forgotMobileBtn).toBeInTheDocument();
-    expect(forgotMobileBtn).toHaveAttribute("type", "button");
-    expect(forgotMobileBtn.className).toContain("font-bold");
+    const forgotMobileLink = screen.getByRole("link", { name: "Forgot?" });
+    expect(forgotMobileLink).toHaveAttribute("href", "/forgot-password");
+    expect(forgotMobileLink.className).toContain("font-bold");
 
-    const forgotDesktopBtn = screen.getByRole("button", {
+    const forgotDesktopLink = screen.getByRole("link", {
       name: "Forgot Password?",
     });
-    expect(forgotDesktopBtn).toBeInTheDocument();
-    expect(forgotDesktopBtn).toHaveAttribute("type", "button");
-    expect(forgotDesktopBtn.className).toContain("font-medium");
+    expect(forgotDesktopLink).toHaveAttribute("href", "/forgot-password");
+    expect(forgotDesktopLink.className).toContain("font-medium");
 
     const signUpLink = screen.getByRole("link", { name: "Sign Up" });
     expect(signUpLink).toBeInTheDocument();
@@ -462,22 +460,19 @@ describe("LoginForm", () => {
     expect(document.body.textContent).not.toContain("10.240.0.1");
   });
 
-  it("renders Forgot controls as buttons with no handler, no href, no API call, and no navigation", () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch");
+  it("renders keyboard-accessible Forgot Password links to /forgot-password", () => {
     render(<LoginForm />);
 
-    const forgotMobileBtn = screen.getByRole("button", { name: "Forgot?" });
-    const forgotDesktopBtn = screen.getByRole("button", {
+    const forgotMobileLink = screen.getByRole("link", { name: "Forgot?" });
+    const forgotDesktopLink = screen.getByRole("link", {
       name: "Forgot Password?",
     });
 
-    expect(forgotMobileBtn).not.toHaveAttribute("href");
-    expect(forgotDesktopBtn).not.toHaveAttribute("href");
-
-    fireEvent.click(forgotMobileBtn);
-    fireEvent.click(forgotDesktopBtn);
-
-    expect(fetchSpy).not.toHaveBeenCalled();
-    expect(mockReplace).not.toHaveBeenCalled();
+    expect(forgotMobileLink).toHaveAttribute("href", "/forgot-password");
+    expect(forgotDesktopLink).toHaveAttribute("href", "/forgot-password");
+    forgotMobileLink.focus();
+    expect(forgotMobileLink).toHaveFocus();
+    forgotDesktopLink.focus();
+    expect(forgotDesktopLink).toHaveFocus();
   });
 });

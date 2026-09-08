@@ -3,7 +3,9 @@ import "server-only";
 import { cookies } from "next/headers";
 import {
   loginSchema,
+  forgotPasswordSchema,
   signUpSchema,
+  type ForgotPasswordValues,
   type LoginValues,
   type SignUpValues,
 } from "./schema";
@@ -162,6 +164,41 @@ export async function signUp(input: SignUpValues): Promise<void> {
   } satisfies SafeSignUpError;
 }
 
+type SafeRecoveryError = { status: number; message: string };
+
+export async function requestPasswordRecovery(
+  input: ForgotPasswordValues,
+): Promise<void> {
+  const { baseUrl, apiKey } = getConfig();
+  let response: Response;
+
+  try {
+    response = await fetch(`${baseUrl}/auth/v1/recover`, {
+      method: "POST",
+      headers: { apikey: apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: input.email }),
+      cache: "no-store",
+    });
+  } catch {
+    throw {
+      status: 503,
+      message: "Unable to send the reset link right now. Please try again.",
+    } satisfies SafeRecoveryError;
+  }
+
+  if (response.ok) return;
+
+  try {
+    await response.json();
+  } catch {
+    /* Recovery error details remain server-only to prevent account enumeration. */
+  }
+  throw {
+    status: response.status,
+    message: "Unable to send the reset link right now. Please try again.",
+  } satisfies SafeRecoveryError;
+}
+
 async function refreshSession(refreshToken: string): Promise<boolean> {
   try {
     const rememberMe =
@@ -228,6 +265,10 @@ export function parseLoginInput(input: unknown): LoginValues {
 
 export function parseSignUpInput(input: unknown): SignUpValues {
   return signUpSchema.parse(input);
+}
+
+export function parseForgotPasswordInput(input: unknown): ForgotPasswordValues {
+  return forgotPasswordSchema.parse(input);
 }
 
 export const authCookieNames = {

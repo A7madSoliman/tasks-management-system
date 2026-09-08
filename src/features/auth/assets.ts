@@ -16,4 +16,10 @@ export const AUTH_ASSETS = {
   arrowRight: "/assets/arrow-right.svg",
   passwordRequirementPending: "/assets/sign-up-asset-2.svg",
   passwordRequirementComplete: "/assets/sign-up-asset-3.svg",
+  forgotPasswordDesktopBack: "/assets/forgot-password-desktop-back.svg",
+  forgotPasswordDesktopSuccess: "/assets/forgot-password-desktop-success.svg",
+  forgotPasswordDesktopTimer: "/assets/forgot-password-desktop-timer.svg",
+  forgotPasswordMobileRecovery: "/assets/forgot-password-mobile-recovery.svg",
+  forgotPasswordMobileBack: "/assets/forgot-password-mobile-back.svg",
+  forgotPasswordMobileSuccess: "/assets/forgot-password-mobile-success.svg",
 } as const;

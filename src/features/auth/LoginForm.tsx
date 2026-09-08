@@ -210,13 +210,12 @@ export function LoginForm() {
             >
               Password
             </label>
-            {/* Mobile Forgot? Button */}
-            <button
-              type="button"
+            <Link
+              href={"/forgot-password" as Route}
               className="text-action-primary focus-visible:ring-action-primary cursor-pointer rounded text-[11px] font-bold hover:underline focus-visible:ring-2 focus-visible:outline-none md:hidden"
             >
               Forgot?
-            </button>
+            </Link>
           </div>
           <div className="relative flex items-center">
             <input
@@ -285,13 +284,12 @@ export function LoginForm() {
             </span>
           </label>
 
-          {/* Desktop Forgot Password? Button */}
-          <button
-            type="button"
+          <Link
+            href={"/forgot-password" as Route}
             className="text-action-primary focus-visible:ring-action-primary hidden cursor-pointer rounded text-[14px] font-medium hover:underline focus-visible:ring-2 focus-visible:outline-none md:inline"
           >
             Forgot Password?
-          </button>
+          </Link>
         </div>
 
         {/* Submit Button */}

@@ -1,9 +1,25 @@
 import { describe, expect, it } from "vitest";
 import {
+  forgotPasswordSchema,
   getPasswordRequirementState,
   loginSchema,
   signUpSchema,
 } from "./schema";
+
+describe("forgotPasswordSchema", () => {
+  it("rejects empty and malformed email values", () => {
+    expect(forgotPasswordSchema.safeParse({ email: "" }).success).toBe(false);
+    expect(
+      forgotPasswordSchema.safeParse({ email: "not-an-email" }).success,
+    ).toBe(false);
+  });
+
+  it("accepts a valid email", () => {
+    expect(
+      forgotPasswordSchema.safeParse({ email: "person@example.com" }).success,
+    ).toBe(true);
+  });
+});
 
 describe("loginSchema", () => {
   it("validates required email and password fields", () => {

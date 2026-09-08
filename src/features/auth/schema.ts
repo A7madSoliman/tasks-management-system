@@ -94,3 +94,14 @@ export const signUpSchema = z
 
 export type SignUpInput = z.input<typeof signUpSchema>;
 export type SignUpValues = z.output<typeof signUpSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, "Enter your email address.")
+    .email("Enter a valid email address."),
+});
+
+export type ForgotPasswordInput = z.input<typeof forgotPasswordSchema>;
+export type ForgotPasswordValues = z.output<typeof forgotPasswordSchema>;
