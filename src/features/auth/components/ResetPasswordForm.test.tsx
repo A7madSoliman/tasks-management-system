@@ -63,6 +63,47 @@ describe("ResetPasswordForm", () => {
     );
   });
 
+  it("switches both password inputs and their Figma visibility icons", () => {
+    render(<ResetPasswordForm />);
+
+    const password = screen.getByLabelText("New Password");
+    const passwordToggle = screen.getByRole("button", {
+      name: "Show password",
+    });
+    const confirm = screen.getByLabelText("Confirm Password");
+    const confirmToggle = screen.getByRole("button", {
+      name: "Show confirm password",
+    });
+
+    expect(password).toHaveAttribute("type", "password");
+    expect(passwordToggle).toHaveAttribute("aria-pressed", "false");
+    expect(passwordToggle.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye.svg",
+    );
+    fireEvent.click(passwordToggle);
+    expect(password).toHaveAttribute("type", "text");
+    expect(passwordToggle).toHaveAttribute("aria-pressed", "true");
+    expect(passwordToggle.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye-off.svg",
+    );
+
+    expect(confirm).toHaveAttribute("type", "password");
+    expect(confirmToggle).toHaveAttribute("aria-pressed", "false");
+    expect(confirmToggle.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye.svg",
+    );
+    fireEvent.click(confirmToggle);
+    expect(confirm).toHaveAttribute("type", "text");
+    expect(confirmToggle).toHaveAttribute("aria-pressed", "true");
+    expect(confirmToggle.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye-off.svg",
+    );
+  });
+
   it("derives every live indicator from shared requirements and reverts them", () => {
     render(<ResetPasswordForm />);
     const password = screen.getByLabelText("New Password");

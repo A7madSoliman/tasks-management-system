@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-[#f9f9ff] text-[#041b3c] md:bg-[#f0f1f5]">
-      <header className="flex h-[64px] shrink-0 items-center bg-[rgba(249,249,255,0.8)] px-[24px] backdrop-blur-[6px] md:h-[80px] md:bg-[#f0f1f5] md:px-[40px] md:backdrop-blur-none">
+    <div className="flex min-h-dvh flex-col bg-[#f9f9ff] text-[#041b3c]">
+      <header className="flex h-[64px] shrink-0 items-center bg-[rgba(249,249,255,0.8)] px-[24px] backdrop-blur-[6px] md:h-[80px] md:bg-[#f9f9ff] md:px-[40px] md:backdrop-blur-none">
         <div className="flex items-center gap-[8px]">
           <img
             src={AUTH_ASSETS.logo}
