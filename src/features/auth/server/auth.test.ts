@@ -38,6 +38,7 @@ import {
   establishRecoveryContext,
   getCurrentUser,
   login,
+  logout,
   parseLoginInput,
   updateRecoveryPassword,
 } from "./auth-server";
@@ -652,6 +653,62 @@ describe("Server Auth Helpers (src/features/auth/server/auth.ts)", () => {
     it("deletes access, refresh, and rememberMe marker cookies", async () => {
       await clearSession();
 
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.access);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.refresh);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
+    });
+  });
+
+  describe("logout()", () => {
+    it("ends the verified backend session and clears all Taskly session cookies", async () => {
+      cookieStore.set(authCookieNames.access, { value: "active-access-token" });
+      cookieStore.set(authCookieNames.refresh, {
+        value: "active-refresh-token",
+      });
+      cookieStore.set(authCookieNames.rememberMe, { value: "1" });
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+      await logout();
+
+      expect(fetchSpy).toHaveBeenCalledWith(`${MOCK_BASE_URL}/auth/v1/logout`, {
+        method: "POST",
+        headers: {
+          apikey: MOCK_API_KEY,
+          "Content-Type": "application/json",
+          Authorization: "Bearer active-access-token",
+        },
+        cache: "no-store",
+      });
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.access);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.refresh);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
+    });
+
+    it("clears local cookies even when backend logout fails", async () => {
+      cookieStore.set(authCookieNames.access, { value: "active-access-token" });
+      cookieStore.set(authCookieNames.refresh, {
+        value: "active-refresh-token",
+      });
+      vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("offline"));
+
+      await expect(logout()).resolves.toBeUndefined();
+
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.access);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.refresh);
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
+    });
+
+    it("does not call Supabase without a local access token and still clears stale state", async () => {
+      cookieStore.set(authCookieNames.refresh, {
+        value: "stale-refresh-token",
+      });
+      const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+      await logout();
+
+      expect(fetchSpy).not.toHaveBeenCalled();
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.access);
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.refresh);
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);

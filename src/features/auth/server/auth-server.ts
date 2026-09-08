@@ -319,6 +319,34 @@ export async function clearSession(): Promise<void> {
   jar.delete(REMEMBER_ME_COOKIE);
 }
 
+/**
+ * Ends the backend session when an access token is available, then always
+ * removes this browser's server-managed session cookies. A failed backend
+ * request must not leave the browser authenticated.
+ */
+export async function logout(): Promise<void> {
+  const accessToken = (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
+
+  try {
+    if (!accessToken) return;
+
+    const { baseUrl, apiKey } = getConfig();
+    await fetch(`${baseUrl}/auth/v1/logout`, {
+      method: "POST",
+      headers: {
+        apikey: apiKey,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      cache: "no-store",
+    });
+  } catch {
+    // The local session is still cleared in finally; backend details stay server-only.
+  } finally {
+    await clearSession();
+  }
+}
+
 export async function getCurrentUser(): Promise<AuthUser | null> {
   const jar = await cookies();
   const accessToken = jar.get(ACCESS_TOKEN_COOKIE)?.value;
