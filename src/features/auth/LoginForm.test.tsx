@@ -119,6 +119,49 @@ describe("LoginForm", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("validates email on blur and revalidates it as the user corrects it", async () => {
+    render(<LoginForm />);
+
+    const emailInput = screen.getByLabelText(/email/i);
+    fireEvent.change(emailInput, { target: { value: "not-an-email" } });
+    fireEvent.blur(emailInput);
+
+    expect(
+      await screen.findByText("Enter a valid email address."),
+    ).toBeInTheDocument();
+    expect(emailInput).toHaveAttribute("aria-invalid", "true");
+
+    fireEvent.change(emailInput, {
+      target: { value: "curator@workspace.com" },
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Enter a valid email address."),
+      ).not.toBeInTheDocument();
+      expect(emailInput).toHaveAttribute("aria-invalid", "false");
+    });
+  });
+
+  it("validates password on blur and revalidates it as the user corrects it", async () => {
+    render(<LoginForm />);
+
+    const passwordInput = screen.getByLabelText(/^password/i);
+    fireEvent.blur(passwordInput);
+
+    expect(await screen.findByText("Enter your password.")).toBeInTheDocument();
+    expect(passwordInput).toHaveAttribute("aria-invalid", "true");
+
+    fireEvent.change(passwordInput, { target: { value: "backend-valid" } });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Enter your password."),
+      ).not.toBeInTheDocument();
+      expect(passwordInput).toHaveAttribute("aria-invalid", "false");
+    });
+  });
+
   it("renders validation error and rejects before fetch for invalid email format", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     render(<LoginForm />);
@@ -221,6 +264,9 @@ describe("LoginForm", () => {
     expect(emailInput).toBeDisabled();
     expect(passwordInput).toBeDisabled();
     expect(rememberMe).toBeDisabled();
+
+    fireEvent.click(submitButton);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
 
     // Resolve the promise
     resolvePromise(

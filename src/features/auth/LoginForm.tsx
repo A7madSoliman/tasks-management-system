@@ -53,6 +53,7 @@ export function LoginForm() {
   const {
     register,
     handleSubmit,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodLoginResolver,
@@ -61,8 +62,18 @@ export function LoginForm() {
       password: "",
       rememberMe: false,
     },
-    mode: "onSubmit",
+    mode: "onBlur",
+    reValidateMode: "onChange",
   });
+
+  const registerValidatedField = (name: "email" | "password") =>
+    register(name, {
+      onChange: () => {
+        if (errors[name]) {
+          void trigger(name);
+        }
+      },
+    });
 
   const onSubmit = async (data: LoginInput) => {
     setFormError(null);
@@ -176,7 +187,7 @@ export function LoginForm() {
               aria-describedby={errors.email ? "login-email-error" : undefined}
               disabled={isSubmitting}
               placeholder="curator@workspace.com"
-              {...register("email")}
+              {...registerValidatedField("email")}
               className={`h-control-md rounded-control-lg bg-surface-highest text-text-primary placeholder:text-text-placeholder focus-visible:ring-action-primary md:h-control-sm md:rounded-control-sm w-full px-[16px] py-[18px] pr-[48px] text-[16px] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 md:py-[14px] ${
                 errors.email
                   ? "border-semantic-error focus-visible:ring-semantic-error border"
@@ -230,7 +241,7 @@ export function LoginForm() {
               }
               disabled={isSubmitting}
               placeholder="Enter your password"
-              {...register("password")}
+              {...registerValidatedField("password")}
               className={`h-control-md rounded-control-lg bg-surface-highest text-text-primary placeholder:text-text-placeholder focus-visible:ring-action-primary md:h-control-sm md:rounded-control-sm w-full px-[16px] py-[18px] pr-[50px] text-[16px] transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 md:py-[14px] ${
                 errors.password
                   ? "border-semantic-error focus-visible:ring-semantic-error border"
