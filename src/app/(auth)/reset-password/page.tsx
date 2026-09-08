@@ -1,9 +1,9 @@
 /* eslint-disable @next/next/no-img-element -- exact locally committed Figma export */
 import type { Metadata } from "next";
-import { AUTH_ASSETS } from "@/features/auth/assets";
-import { RecoveryBootstrap } from "@/features/auth/RecoveryBootstrap";
-import { ResetPasswordForm } from "@/features/auth/ResetPasswordForm";
-import { hasValidRecoveryContext } from "@/features/auth/server";
+import { AUTH_ASSETS } from "@/features/auth/assets/auth-assets";
+import { RecoveryBootstrap } from "@/features/auth/components/RecoveryBootstrap";
+import { ResetPasswordForm } from "@/features/auth/components/ResetPasswordForm";
+import { hasValidRecoveryContext } from "@/features/auth/server/auth";
 
 export const metadata: Metadata = {
   title: "Reset Password | Taskly",

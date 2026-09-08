@@ -8,8 +8,8 @@ import { useForm, type FieldErrors, type Resolver } from "react-hook-form";
 import {
   forgotPasswordSchema,
   type ForgotPasswordInput,
-} from "@/features/auth/schema";
-import { AUTH_ASSETS } from "@/features/auth/assets";
+} from "@/features/auth/schemas/auth";
+import { AUTH_ASSETS } from "@/features/auth/assets/auth-assets";
 
 export const RECOVERY_COOLDOWN_SECONDS = 300;
 export const MAX_RESEND_ATTEMPTS = 3;

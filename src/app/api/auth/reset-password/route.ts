@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   parseResetPasswordInput,
   updateRecoveryPassword,
-} from "@/features/auth/server";
+} from "@/features/auth/server/auth";
 
 const INVALID_RECOVERY_MESSAGE = "Invalid or expired reset link.";
 const UPDATE_FAILURE_MESSAGE =

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- exact, locally committed Figma SVG export */
 import type { Metadata } from "next";
-import { ForgotPasswordForm } from "@/features/auth/ForgotPasswordForm";
-import { AUTH_ASSETS } from "@/features/auth/assets";
+import { ForgotPasswordForm } from "@/features/auth/components/ForgotPasswordForm";
+import { AUTH_ASSETS } from "@/features/auth/assets/auth-assets";
 
 export const metadata: Metadata = {
   title: "Forgot Password | Taskly",

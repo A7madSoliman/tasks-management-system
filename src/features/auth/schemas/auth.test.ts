@@ -5,7 +5,7 @@ import {
   loginSchema,
   resetPasswordSchema,
   signUpSchema,
-} from "./schema";
+} from "./auth";
 
 describe("forgotPasswordSchema", () => {
   it("rejects empty and malformed email values", () => {

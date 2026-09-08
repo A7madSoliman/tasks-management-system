@@ -10,7 +10,7 @@ import {
   type LoginValues,
   type SignUpValues,
   type ResetPasswordValues,
-} from "./schema";
+} from "../schemas/auth";
 
 const ACCESS_TOKEN_COOKIE = "taskly_access_token";
 const REFRESH_TOKEN_COOKIE = "taskly_refresh_token";

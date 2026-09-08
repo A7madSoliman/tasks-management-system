@@ -11,12 +11,12 @@ import {
   type FieldErrors,
   type Resolver,
 } from "react-hook-form";
-import { AUTH_ASSETS } from "./assets";
+import { AUTH_ASSETS } from "@/features/auth/assets/auth-assets";
 import {
   getPasswordRequirementState,
   resetPasswordSchema,
   type ResetPasswordInput,
-} from "./schema";
+} from "@/features/auth/schemas/auth";
 
 export const SUCCESS_REDIRECT_DELAY_MS = 3000;
 const SUCCESS_MESSAGE =

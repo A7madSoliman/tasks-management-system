@@ -15,8 +15,8 @@ import {
   getPasswordRequirementState,
   signUpSchema,
   type SignUpInput,
-} from "@/features/auth/schema";
-import { AUTH_ASSETS } from "@/features/auth/assets";
+} from "@/features/auth/schemas/auth";
+import { AUTH_ASSETS } from "@/features/auth/assets/auth-assets";
 
 /**
  * Custom resolver using shared Zod signUpSchema without requiring external resolver dependencies.

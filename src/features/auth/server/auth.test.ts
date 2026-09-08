@@ -40,9 +40,9 @@ import {
   login,
   parseLoginInput,
   updateRecoveryPassword,
-} from "./server";
+} from "./auth";
 
-describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
+describe("Server Auth Helpers (src/features/auth/server/auth.ts)", () => {
   const MOCK_BASE_URL = "https://mock-supabase.test";
   const MOCK_API_KEY = "mock-supabase-api-key";
 

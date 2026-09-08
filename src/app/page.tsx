@@ -1,4 +1,4 @@
-import { RecoveryBootstrap } from "@/features/auth/RecoveryBootstrap";
+import { RecoveryBootstrap } from "@/features/auth/components/RecoveryBootstrap";
 
 export default function Home() {
   return (

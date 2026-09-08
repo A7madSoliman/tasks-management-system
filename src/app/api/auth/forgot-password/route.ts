@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   parseForgotPasswordInput,
   requestPasswordRecovery,
-} from "@/features/auth/server";
+} from "@/features/auth/server/auth";
 
 export const RECOVERY_SUCCESS_MESSAGE =
   "If an account exists with this email, we’ve sent a password reset link.";

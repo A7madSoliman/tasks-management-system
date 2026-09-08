@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Temporary Figma SVG asset references isolated for Codex SVGR integration */
 import type { Metadata } from "next";
-import { SignUpForm } from "@/features/auth/SignUpForm";
-import { AUTH_ASSETS } from "@/features/auth/assets";
+import { SignUpForm } from "@/features/auth/components/SignUpForm";
+import { AUTH_ASSETS } from "@/features/auth/assets/auth-assets";
 
 export const metadata: Metadata = {
   title: "Sign Up | Taskly",
