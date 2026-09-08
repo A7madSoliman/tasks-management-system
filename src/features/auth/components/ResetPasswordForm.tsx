@@ -210,10 +210,10 @@ export function ResetPasswordForm() {
                 className="focus-visible:ring-action-primary absolute top-1/2 right-[12px] -translate-y-1/2 rounded p-1 focus-visible:ring-2 focus-visible:outline-none"
               >
                 <img
-                  src={AUTH_ASSETS.eye}
+                  src={visible ? AUTH_ASSETS.eyeOff : AUTH_ASSETS.eye}
                   alt=""
                   aria-hidden="true"
-                  className="h-[15px] w-[22px]"
+                  className="size-[20px] object-contain"
                 />
               </button>
             </div>

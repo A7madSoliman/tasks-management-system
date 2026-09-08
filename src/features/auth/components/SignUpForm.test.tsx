@@ -412,12 +412,20 @@ describe("SignUpForm", () => {
 
     expect(passwordInput).toHaveAttribute("type", "password");
     expect(togglePasswordBtn).toHaveAttribute("aria-pressed", "false");
+    expect(togglePasswordBtn.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye.svg",
+    );
 
     // Toggle on password via click
     fireEvent.click(togglePasswordBtn);
     expect(passwordInput).toHaveAttribute("type", "text");
     expect(togglePasswordBtn).toHaveAttribute("aria-label", "Hide password");
     expect(togglePasswordBtn).toHaveAttribute("aria-pressed", "true");
+    expect(togglePasswordBtn.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye-off.svg",
+    );
 
     // Toggle off password via keyboard activation
     togglePasswordBtn.focus();
@@ -434,6 +442,10 @@ describe("SignUpForm", () => {
 
     expect(confirmPasswordInput).toHaveAttribute("type", "password");
     expect(toggleConfirmBtn).toHaveAttribute("aria-pressed", "false");
+    expect(toggleConfirmBtn.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye.svg",
+    );
 
     // Toggle on confirm password
     fireEvent.click(toggleConfirmBtn);
@@ -443,6 +455,10 @@ describe("SignUpForm", () => {
       "Hide confirm password",
     );
     expect(toggleConfirmBtn).toHaveAttribute("aria-pressed", "true");
+    expect(toggleConfirmBtn.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye-off.svg",
+    );
 
     // Toggle off confirm password
     fireEvent.click(toggleConfirmBtn);

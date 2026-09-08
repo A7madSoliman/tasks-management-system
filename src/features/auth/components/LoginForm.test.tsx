@@ -214,6 +214,10 @@ describe("LoginForm", () => {
 
     expect(passwordInput).toHaveAttribute("type", "password");
     expect(toggleBtn).toHaveAttribute("aria-pressed", "false");
+    expect(toggleBtn.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye.svg",
+    );
 
     // Toggle on via click
     fireEvent.click(toggleBtn);
@@ -221,6 +225,10 @@ describe("LoginForm", () => {
     expect(passwordInput).toHaveAttribute("type", "text");
     expect(toggleBtn).toHaveAttribute("aria-label", "Hide password");
     expect(toggleBtn).toHaveAttribute("aria-pressed", "true");
+    expect(toggleBtn.querySelector("img")).toHaveAttribute(
+      "src",
+      "/assets/eye-off.svg",
+    );
 
     // Toggle off via keyboard Enter on the button
     toggleBtn.focus();
