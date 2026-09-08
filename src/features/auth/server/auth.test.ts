@@ -40,7 +40,7 @@ import {
   login,
   parseLoginInput,
   updateRecoveryPassword,
-} from "./auth";
+} from "./auth-server";
 
 describe("Server Auth Helpers (src/features/auth/server/auth.ts)", () => {
   const MOCK_BASE_URL = "https://mock-supabase.test";

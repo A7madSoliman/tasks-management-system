@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { establishRecoveryContext } from "@/features/auth/server/auth";
+import { establishRecoveryContext } from "@/features/auth/server/auth-server";
 
 const recoveryCaptureSchema = z.object({
   type: z.literal("recovery"),
@@ -28,7 +28,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE() {
-  const { clearRecoveryContext } = await import("@/features/auth/server/auth");
+  const { clearRecoveryContext } =
+    await import("@/features/auth/server/auth-server");
   await clearRecoveryContext();
   return new NextResponse(null, { status: 204 });
 }

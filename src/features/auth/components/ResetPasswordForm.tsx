@@ -16,7 +16,7 @@ import {
   getPasswordRequirementState,
   resetPasswordSchema,
   type ResetPasswordInput,
-} from "@/features/auth/schemas/auth";
+} from "@/features/auth/schemas/auth-schemas";
 
 export const SUCCESS_REDIRECT_DELAY_MS = 3000;
 const SUCCESS_MESSAGE =

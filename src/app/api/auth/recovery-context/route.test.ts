@@ -4,7 +4,7 @@ const { establishRecoveryContext, clearRecoveryContext } = vi.hoisted(() => ({
   establishRecoveryContext: vi.fn(),
   clearRecoveryContext: vi.fn(),
 }));
-vi.mock("@/features/auth/server/auth", () => ({
+vi.mock("@/features/auth/server/auth-server", () => ({
   establishRecoveryContext,
   clearRecoveryContext,
 }));

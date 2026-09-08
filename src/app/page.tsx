@@ -1,9 +1,9 @@
-import { RecoveryBootstrap } from "@/features/auth/components/RecoveryBootstrap";
+import { RecoveryFragmentBootstrap } from "@/features/auth/components/RecoveryFragmentBootstrap";
 
 export default function Home() {
   return (
     <main>
-      <RecoveryBootstrap />
+      <RecoveryFragmentBootstrap />
       <h1>Taskly</h1>
       <p>Application scaffold is ready.</p>
     </main>

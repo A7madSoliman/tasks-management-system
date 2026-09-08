@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { parseSignUpInput, signUp } from "@/features/auth/server/auth";
+import { parseSignUpInput, signUp } from "@/features/auth/server/auth-server";
 
 const FALLBACK_ERROR = "Unable to create your account. Please try again.";
 

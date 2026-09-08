@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 
 const INVALID_RECOVERY_MESSAGE = "Invalid or expired reset link.";
 
-type RecoveryBootstrapProps = { invalidWhenMissing?: boolean };
+type RecoveryFragmentBootstrapProps = { invalidWhenMissing?: boolean };
 
 /** Captures a recovery-only fragment and removes it before navigating. */
-export function RecoveryBootstrap({
+export function RecoveryFragmentBootstrap({
   invalidWhenMissing = false,
-}: RecoveryBootstrapProps) {
+}: RecoveryFragmentBootstrapProps) {
   const router = useRouter();
   const [state, setState] = useState<"loading" | "invalid">("loading");
 

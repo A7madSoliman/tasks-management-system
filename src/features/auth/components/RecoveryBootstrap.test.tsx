@@ -1,11 +1,11 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { RecoveryBootstrap } from "./RecoveryBootstrap";
+import { RecoveryFragmentBootstrap } from "./RecoveryFragmentBootstrap";
 
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
 
-describe("RecoveryBootstrap", () => {
+describe("RecoveryFragmentBootstrap", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     replace.mockClear();
@@ -28,7 +28,7 @@ describe("RecoveryBootstrap", () => {
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ success: true }), { status: 200 }),
       );
-    render(<RecoveryBootstrap invalidWhenMissing />);
+    render(<RecoveryFragmentBootstrap invalidWhenMissing />);
     await act(async () => {});
     expect(fetchSpy).toHaveBeenCalledWith("/api/auth/recovery-context", {
       method: "POST",
@@ -55,7 +55,7 @@ describe("RecoveryBootstrap", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify({ success: true }), { status: 200 }),
     );
-    render(<RecoveryBootstrap />);
+    render(<RecoveryFragmentBootstrap />);
     await act(async () => {});
     expect(replace).toHaveBeenCalledWith("/reset-password");
     expect(replace).not.toHaveBeenCalledWith("/project");
@@ -67,7 +67,7 @@ describe("RecoveryBootstrap", () => {
     async (hash) => {
       window.history.replaceState(null, "", `/reset-password${hash}`);
       const fetchSpy = vi.spyOn(globalThis, "fetch");
-      render(<RecoveryBootstrap invalidWhenMissing />);
+      render(<RecoveryFragmentBootstrap invalidWhenMissing />);
       await act(async () => {
         await new Promise((resolve) => window.setTimeout(resolve, 0));
       });
@@ -83,7 +83,7 @@ describe("RecoveryBootstrap", () => {
     async (hash) => {
       window.history.replaceState(null, "", `/${hash}`);
       const fetchSpy = vi.spyOn(globalThis, "fetch");
-      render(<RecoveryBootstrap />);
+      render(<RecoveryFragmentBootstrap />);
       await act(async () => {});
       expect(fetchSpy).not.toHaveBeenCalled();
       expect(window.location.hash).toBe("");
@@ -94,7 +94,7 @@ describe("RecoveryBootstrap", () => {
 
   it("does not alter normal root navigation when no fragment exists", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
-    render(<RecoveryBootstrap />);
+    render(<RecoveryFragmentBootstrap />);
     await act(async () => {});
     expect(replace).not.toHaveBeenCalled();
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -109,7 +109,7 @@ describe("RecoveryBootstrap", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response("raw backend token detail", { status: 401 }),
     );
-    render(<RecoveryBootstrap invalidWhenMissing />);
+    render(<RecoveryFragmentBootstrap invalidWhenMissing />);
     await act(async () => {});
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Invalid or expired reset link.",

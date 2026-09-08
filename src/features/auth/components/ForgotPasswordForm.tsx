@@ -8,7 +8,7 @@ import { useForm, type FieldErrors, type Resolver } from "react-hook-form";
 import {
   forgotPasswordSchema,
   type ForgotPasswordInput,
-} from "@/features/auth/schemas/auth";
+} from "@/features/auth/schemas/auth-schemas";
 import { AUTH_ASSETS } from "@/features/auth/assets/auth-assets";
 
 export const RECOVERY_COOLDOWN_SECONDS = 300;

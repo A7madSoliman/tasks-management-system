@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/features/auth/server/auth";
+import { getCurrentUser } from "@/features/auth/server/auth-server";
 
 export default async function ProjectDestinationShell() {
   const user = await getCurrentUser();

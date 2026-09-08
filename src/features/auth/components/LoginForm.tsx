@@ -6,7 +6,10 @@ import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, type Resolver, type FieldErrors } from "react-hook-form";
-import { loginSchema, type LoginInput } from "@/features/auth/schemas/auth";
+import {
+  loginSchema,
+  type LoginInput,
+} from "@/features/auth/schemas/auth-schemas";
 import { AUTH_ASSETS } from "@/features/auth/assets/auth-assets";
 
 /**

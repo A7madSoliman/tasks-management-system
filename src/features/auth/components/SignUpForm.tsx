@@ -15,7 +15,7 @@ import {
   getPasswordRequirementState,
   signUpSchema,
   type SignUpInput,
-} from "@/features/auth/schemas/auth";
+} from "@/features/auth/schemas/auth-schemas";
 import { AUTH_ASSETS } from "@/features/auth/assets/auth-assets";
 
 /**

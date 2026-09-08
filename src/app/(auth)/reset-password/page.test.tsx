@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 const { hasValidRecoveryContext } = vi.hoisted(() => ({
   hasValidRecoveryContext: vi.fn(),
 }));
-vi.mock("@/features/auth/server/auth", () => ({ hasValidRecoveryContext }));
+vi.mock("@/features/auth/server/auth-server", () => ({
+  hasValidRecoveryContext,
+}));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn() }) }));
 
 import ResetPasswordPage from "./page";

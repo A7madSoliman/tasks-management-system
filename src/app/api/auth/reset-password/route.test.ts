@@ -4,7 +4,7 @@ const { parseResetPasswordInput, updateRecoveryPassword } = vi.hoisted(() => ({
   parseResetPasswordInput: vi.fn(),
   updateRecoveryPassword: vi.fn(),
 }));
-vi.mock("@/features/auth/server/auth", () => ({
+vi.mock("@/features/auth/server/auth-server", () => ({
   parseResetPasswordInput,
   updateRecoveryPassword,
 }));
