@@ -5,9 +5,11 @@ import {
   loginSchema,
   forgotPasswordSchema,
   signUpSchema,
+  resetPasswordSchema,
   type ForgotPasswordValues,
   type LoginValues,
   type SignUpValues,
+  type ResetPasswordValues,
 } from "./schema";
 
 const ACCESS_TOKEN_COOKIE = "taskly_access_token";
@@ -15,6 +17,7 @@ const REFRESH_TOKEN_COOKIE = "taskly_refresh_token";
 const REMEMBER_ME_COOKIE = "taskly_remember_me";
 export const AUTH_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 const REMEMBER_ME_COOKIE_VALUE = "1";
+const RECOVERY_ACCESS_TOKEN_COOKIE = "taskly_recovery_access_token";
 
 type AuthTokenResponse = {
   access_token: string;
@@ -199,6 +202,100 @@ export async function requestPasswordRecovery(
   } satisfies SafeRecoveryError;
 }
 
+async function isValidRecoveryAccessToken(
+  accessToken: string,
+): Promise<boolean> {
+  try {
+    const { baseUrl, apiKey } = getConfig();
+    const response = await fetch(`${baseUrl}/auth/v1/user`, {
+      headers: { apikey: apiKey, Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+    if (!response.ok) return false;
+    const payload: unknown = await response.json();
+    return isRecord(payload) && typeof payload.id === "string";
+  } catch {
+    return false;
+  }
+}
+
+export async function establishRecoveryContext(
+  accessToken: string,
+): Promise<boolean> {
+  if (!(await isValidRecoveryAccessToken(accessToken))) return false;
+  (await cookies()).set(
+    RECOVERY_ACCESS_TOKEN_COOKIE,
+    accessToken,
+    cookieOptions(),
+  );
+  return true;
+}
+
+export async function hasValidRecoveryContext(): Promise<boolean> {
+  const accessToken = (await cookies()).get(
+    RECOVERY_ACCESS_TOKEN_COOKIE,
+  )?.value;
+  return Boolean(
+    accessToken && (await isValidRecoveryAccessToken(accessToken)),
+  );
+}
+
+export async function clearRecoveryContext(): Promise<void> {
+  (await cookies()).delete(RECOVERY_ACCESS_TOKEN_COOKIE);
+}
+
+export async function updateRecoveryPassword(
+  input: ResetPasswordValues,
+): Promise<void> {
+  const accessToken = (await cookies()).get(
+    RECOVERY_ACCESS_TOKEN_COOKIE,
+  )?.value;
+  if (!accessToken) {
+    throw {
+      status: 401,
+      message: "Invalid or expired reset link.",
+    } satisfies SafeAuthError;
+  }
+
+  let response: Response;
+  try {
+    const { baseUrl, apiKey } = getConfig();
+    response = await fetch(`${baseUrl}/auth/v1/user`, {
+      method: "PUT",
+      headers: {
+        apikey: apiKey,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ password: input.password }),
+      cache: "no-store",
+    });
+  } catch {
+    throw {
+      status: 503,
+      message: "Unable to update your password. Please try again.",
+    } satisfies SafeAuthError;
+  }
+  if (response.ok) {
+    await clearRecoveryContext();
+    return;
+  }
+  try {
+    await response.json();
+  } catch {
+    /* Backend errors stay server-only. */
+  }
+  if (response.status === 401 || response.status === 403)
+    await clearRecoveryContext();
+  throw {
+    status: response.status,
+    message:
+      response.status === 401 || response.status === 403
+        ? "Invalid or expired reset link."
+        : "Unable to update your password. Please try again.",
+  } satisfies SafeAuthError;
+}
+
 async function refreshSession(refreshToken: string): Promise<boolean> {
   try {
     const rememberMe =
@@ -271,8 +368,13 @@ export function parseForgotPasswordInput(input: unknown): ForgotPasswordValues {
   return forgotPasswordSchema.parse(input);
 }
 
+export function parseResetPasswordInput(input: unknown): ResetPasswordValues {
+  return resetPasswordSchema.parse(input);
+}
+
 export const authCookieNames = {
   access: ACCESS_TOKEN_COOKIE,
   refresh: REFRESH_TOKEN_COOKIE,
   rememberMe: REMEMBER_ME_COOKIE,
+  recovery: RECOVERY_ACCESS_TOKEN_COOKIE,
 } as const;

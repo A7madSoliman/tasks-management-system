@@ -35,9 +35,11 @@ import {
   AUTH_SESSION_MAX_AGE_SECONDS,
   authCookieNames,
   clearSession,
+  establishRecoveryContext,
   getCurrentUser,
   login,
   parseLoginInput,
+  updateRecoveryPassword,
 } from "./server";
 
 describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
@@ -653,6 +655,45 @@ describe("Server Auth Helpers (src/features/auth/server.ts)", () => {
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.access);
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.refresh);
       expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.rememberMe);
+    });
+  });
+
+  describe("recovery context", () => {
+    it("validates recovery authorization before storing a dedicated HttpOnly cookie", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify({ id: "user-id" }), { status: 200 }),
+      );
+      expect(await establishRecoveryContext("recovery-token")).toBe(true);
+      expect(mockJar.set).toHaveBeenCalledWith(
+        authCookieNames.recovery,
+        "recovery-token",
+        { httpOnly: true, sameSite: "lax", secure: false, path: "/" },
+      );
+      expect(cookieStore.has(authCookieNames.access)).toBe(false);
+      expect(cookieStore.has(authCookieNames.refresh)).toBe(false);
+    });
+
+    it("uses only the dedicated recovery credential for the verified password update endpoint and clears it on success", async () => {
+      cookieStore.set(authCookieNames.recovery, { value: "recovery-token" });
+      const fetchSpy = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(new Response("{}", { status: 200 }));
+      await updateRecoveryPassword({
+        password: "SecurePass123!",
+        confirmPassword: "SecurePass123!",
+      });
+      expect(fetchSpy).toHaveBeenCalledWith(`${MOCK_BASE_URL}/auth/v1/user`, {
+        method: "PUT",
+        headers: {
+          apikey: MOCK_API_KEY,
+          "Content-Type": "application/json",
+          Authorization: "Bearer recovery-token",
+        },
+        body: JSON.stringify({ password: "SecurePass123!" }),
+        cache: "no-store",
+      });
+      expect(mockJar.delete).toHaveBeenCalledWith(authCookieNames.recovery);
+      expect(mockJar.delete).not.toHaveBeenCalledWith(authCookieNames.access);
     });
   });
 

@@ -3,6 +3,7 @@ import {
   forgotPasswordSchema,
   getPasswordRequirementState,
   loginSchema,
+  resetPasswordSchema,
   signUpSchema,
 } from "./schema";
 
@@ -202,5 +203,51 @@ describe("signUpSchema", () => {
       hasUppercaseLowercaseAndDigit: true,
       hasSpecialCharacter: true,
     });
+  });
+});
+
+describe("resetPasswordSchema", () => {
+  const valid = {
+    password: "SecurePass123!",
+    confirmPassword: "SecurePass123!",
+  };
+
+  it("accepts the same valid password accepted by Sign Up", () => {
+    expect(resetPasswordSchema.safeParse(valid).success).toBe(true);
+    expect(
+      signUpSchema.safeParse({
+        name: "Jane Doe",
+        email: "jane@example.com",
+        ...valid,
+      }).success,
+    ).toBe(true);
+  });
+
+  it.each([
+    "Short1!",
+    "securepass123!",
+    "SECUREPASS123!",
+    "SecurePassword!",
+    "SecurePass123",
+  ])("rejects each shared password-rule failure", (password) => {
+    expect(
+      resetPasswordSchema.safeParse({ password, confirmPassword: password })
+        .success,
+    ).toBe(false);
+  });
+
+  it("requires and matches confirmation", () => {
+    expect(
+      resetPasswordSchema.safeParse({
+        password: valid.password,
+        confirmPassword: "",
+      }).success,
+    ).toBe(false);
+    expect(
+      resetPasswordSchema.safeParse({
+        password: valid.password,
+        confirmPassword: "AnotherPass123!",
+      }).success,
+    ).toBe(false);
   });
 });

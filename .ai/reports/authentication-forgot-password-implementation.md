@@ -67,6 +67,7 @@ Acceptance Criteria checklist:
 
 - Recovery was accepted by the backend. Inbox delivery remains intentionally for manual user verification; no resend was made.
 - Earlier local-dev failure was execution-sandbox outbound-network isolation. It is documented so future smoke checks use an authorized direct server-side request when live backend connectivity is required.
+- Final recovery-send diagnosis: one request through `/api/auth/forgot-password` returned safe HTTP `503`; one bounded contract-correct direct request also could not reach the backend. This verifies a network failure in the current execution environment before any Supabase response, not a `429` rate limit, validation failure, backend rejection, or application-boundary contract defect. The existing generic user-safe message remains correct; no retry, endpoint, validation, cooldown, or resend-trial behavior was changed.
 
 ## Next step
 

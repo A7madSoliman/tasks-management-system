@@ -65,6 +65,25 @@ const passwordSchema = z.string().superRefine((password, context) => {
   }
 });
 
+/** Reset Password intentionally composes the Sign Up password source of truth. */
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Confirm your password."),
+  })
+  .superRefine(({ password, confirmPassword }, context) => {
+    if (password !== confirmPassword) {
+      context.addIssue({
+        code: "custom",
+        message: "Passwords do not match.",
+        path: ["confirmPassword"],
+      });
+    }
+  });
+
+export type ResetPasswordInput = z.input<typeof resetPasswordSchema>;
+export type ResetPasswordValues = z.output<typeof resetPasswordSchema>;
+
 export const signUpSchema = z
   .object({
     name: z
