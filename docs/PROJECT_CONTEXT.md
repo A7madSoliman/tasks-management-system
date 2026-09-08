@@ -1,5 +1,7 @@
 # Taskly Project Context
 
+Repository tooling uses pnpm 11.23.0 and the Node 24.20.0 engine policy.
+
 ## Product
 
 Taskly is a tasks management system inspired by products such as ClickUp. It is a training project intended to practice a professional frontend workflow: requirements discovery, design-to-code implementation, typed integration with an existing backend, responsive UI, testing, review, and deployment to Vercel.

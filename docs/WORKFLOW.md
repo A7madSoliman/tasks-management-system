@@ -1,5 +1,8 @@
 # Taskly Delivery Workflow
 
+The repository uses pnpm 11.23.0 with Node 24.20.0. Use `pnpm install` and
+`pnpm run <script>` for local and CI workflows.
+
 ## Standard task loop
 
 `Context -> Figma/API inspection when relevant -> planning -> optional Muse second opinion -> Codex decision -> bounded agy implementation when appropriate -> diff review -> gates -> fixes -> final report -> Codex acceptance -> commit`
