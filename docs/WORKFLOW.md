@@ -20,6 +20,18 @@ The repository uses pnpm 11.23.0 with Node 24.20.0. Use `pnpm install` and
 11. Write the factual task report, including unresolved risks and exact gate outcomes.
 12. Codex makes the final acceptance decision and commits only after the work is verified and commit authorization applies.
 
+## Muse graceful fallback
+
+Every eligible M1 and M2 pass attempts the read-only `planning` (Muse) lane first. The project-local `scripts/muse-planning-fallback.mjs` wrapper owns this sequence; it is the required dispatch path for eligible planning passes.
+
+When Muse completes, use its advisory result and do not call agy. When it fails, the wrapper deny-lists fallback by default: only unambiguous provider evidence such as HTTP 429, quota exceeded, usage limit reached/exhausted, or rate limit reached/exhausted permits the read-only `planningFallback` lane. It passes the identical bounded planning brief to `planningFallback` (agy high, plan mode) and Codex independently analyzes the work and retains final authority. No implementation or write lane is selected by this wrapper.
+
+Authentication/authorization errors, invalid models or configuration, PATH/runtime/preflight and sandbox failures, EEXIST, network/DNS errors, timeouts without explicit quota evidence, and unknown failures stop the planning pass. Do not silently fall back and do not poll Muse.
+
+On quota fallback, surface this user notice exactly in meaning: Muse fallback was activated for a verified Muse/OpenCode quota or rate-limit condition; planning review is temporarily redistributed to agy high read-only advisory review plus Codex independent final analysis; Muse will be retried at the next eligible M1/M2 pass. Do not claim a remaining quota or reset time. The wrapper keeps only a fallback-active flag in Git-local delegate metadata. Every new eligible pass retries Muse first; a later Muse success clears that flag and surfaces that normal Muse M1/M2 workflow is restored.
+
+When fallback is actually used, record in the task report that the affected M1/M2 was unavailable because of verified quota/rate-limit, `planningFallback` / agy high read-only advisory was used, and Codex performed independent final analysis. Never report fallback when it was not used.
+
 ## When Codex should not delegate
 
 - The change is trivial, such as a typo-only change or tiny visual correction.
