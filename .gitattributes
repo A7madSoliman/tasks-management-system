@@ -1,1 +1,5 @@
 .delegate/config.json text eol=lf
+.agents/skills/** text eol=lf
+.specify/scripts/powershell/** text eol=lf
+.specify/templates/** text eol=lf
+.specify/.gitignore text eol=lf
