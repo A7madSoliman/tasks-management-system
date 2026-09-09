@@ -4,16 +4,20 @@
     "planning": {
       "implementer": "opencode",
       "model": "opencode/muse-spark-1.3-contributor-free",
-      "readOnly": true
+      "readOnly": true,
+      "variant": "high"
     },
     "frontend": {
-      "implementer": "agy"
+      "implementer": "agy",
+      "effort": "high"
     },
     "fixes": {
-      "implementer": "agy"
+      "implementer": "agy",
+      "effort": "high"
     },
     "tests": {
-      "implementer": "agy"
+      "implementer": "agy",
+      "effort": "high"
     }
   }
 }

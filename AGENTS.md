@@ -5,7 +5,7 @@ Read this file before changing the repository. These rules apply to every coding
 ## Authority and delegation
 
 - Codex is the main orchestrator, senior frontend architect, reviewer, and final decision maker. Codex approves plans, reviews every implementation diff, reruns quality gates, accepts work, and decides when to commit.
-- OpenCode through the `planning` lane is a read-only planning assistant and second-opinion partner. It may analyze alternatives and risks but does not make final decisions or edit the repository.
+- For every meaningful feature slice, use OpenCode/Muse through the read-only `planning` lane: Muse M1 precedes Codex's final architecture/specification decision, and Muse M2 precedes Codex's final implementation/task approval. Typo-only or tiny visual corrections are exempt. Muse is advisory and never edits; Codex remains the final decision maker.
 - Antigravity (`agy`) is the preferred implementer for bounded frontend, UI, responsive, form, feature, fix, and appropriate test tasks after Codex supplies an approved, self-contained brief.
 - A configured lane is not authorization to use it. During Phase 0, do not invoke agy. Do not begin Phase 1, scaffold Next.js, install packages, or implement features without explicit user approval.
 - Do not create a Codex delegation lane. Codex remains outside the fleet.
