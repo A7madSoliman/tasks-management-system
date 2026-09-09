@@ -7,3 +7,7 @@ pnpm-lock.yaml
 .ai/reports
 docs/API_CONTRACT.md
 docs/api
+.agents/skills/
+.specify/templates/
+.specify/integration.json
+.specify/workflows/workflow-registry.json

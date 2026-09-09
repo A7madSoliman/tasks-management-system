@@ -5,20 +5,29 @@ The repository uses pnpm 11.23.0 with Node 24.20.0. Use `pnpm install` and
 
 ## Standard task loop
 
-`Context -> Figma/API inspection when relevant -> Muse M1 -> Codex decision -> Muse M2 -> bounded agy implementation when appropriate -> diff review -> gates -> fixes -> final report -> Codex acceptance -> commit`
+`Acceptance criteria + exact Figma + verified API/backend evidence -> Context Engineering -> Muse M1 -> Codex decision -> Spec Kit artifacts -> Muse M2 -> Codex task approval -> Delegate Skill -> bounded agy work -> Codex review/gates -> Codex manual convergence -> report -> acceptance -> commit`
 
 1. Work on a feature branch and read `AGENTS.md` plus relevant project documentation.
-2. Define the task and its acceptance criteria. Inspect exact Figma nodes and verified API sources whenever UI or backend behavior is involved.
+2. Define acceptance criteria and verify exact Figma nodes and relevant backend/API evidence. Record missing or conflicting evidence as open questions; do not invent behavior.
 3. For every meaningful feature slice, use the read-only `planning` lane for Muse M1: requirements analysis, alternatives, edge cases, and risks.
-4. Codex makes the final architecture and specification decision. Muse advises but does not decide or edit.
-5. For every meaningful feature slice, use Muse M2 to review specification, plan, and task consistency; identify missing cases; and review risks.
-6. Codex gives final acceptance of the plan and decides whether implementation should proceed.
-7. When appropriate, Codex sends agy a bounded, self-contained implementation brief with scope, evidence, exclusions, and the repository's actual validation commands.
-8. Codex reviews the complete working-tree diff and checks scope, correctness, architecture, types, security, accessibility, responsive behavior, and tests.
+4. Codex makes the final requirements and architecture decision.
+5. For meaningful features, Codex uses `$speckit-specify`, then `$speckit-clarify` only when verified evidence can resolve an ambiguity, followed by `$speckit-plan`, `$speckit-tasks`, and `$speckit-analyze`.
+6. Use Muse M2 to review the resulting specification, plan, and tasks. Codex resolves analysis findings and gives final task approval before implementation.
+7. Codex sends agy a bounded, self-contained Delegate Skill brief with scope, evidence, exclusions, and actual validation commands.
+8. Codex reviews the complete working-tree diff and requests focused fixes or tests when needed.
 9. Codex independently runs lint, typecheck, tests, and production build. A delegate's gate claims are not accepted as evidence.
-10. If needed, request focused fixes and repeat review and gates.
-11. Write the factual task report, including unresolved risks and exact gate outcomes.
-12. Codex makes the final acceptance decision and commits only after the work is verified and commit authorization applies.
+10. Codex performs a manual artifact-to-diff convergence review against acceptance criteria, `spec.md`, `plan.md`, `tasks.md`, exact Figma evidence, verified API/backend evidence, the complete diff, tests, and gates. Each gap becomes a Codex-approved bounded correction task.
+11. Write the factual task report, including unresolved risks and exact gate outcomes. Codex accepts and commits only after verification and authorization apply.
+
+`$speckit-checklist` is optional for requirements-quality review. `$speckit-constitution` is reserved for adoption or principle changes. `$speckit-implement`, `$speckit-taskstoissues`, and `$speckit-converge` are excluded from normal Taskly use: the first executes implementation directly, the second creates GitHub issues, and the third requires prior `$speckit-implement` execution.
+
+## Lite-path exemption
+
+Codex may exempt typo-only changes, tiny visual corrections, narrow test-only fixes, and trivial maintenance from the full Spec Kit path only when the change has no meaningful product behavior, API, security, architecture, or composed UI effect. The lite path still requires applicable AGENTS.md rules, proportionate validation, Codex diff review, and Codex acceptance.
+
+## Specs lifecycle
+
+Commit `specs/<feature>/` with meaningful feature work. After merge, they are historical feature-local decision records, not standing product truth. Promote durable project-wide decisions into the owning `docs/*` file. Never include secrets, credentials, tokens, PII, or raw production data. Mark superseded specifications with the superseding decision or artifact.
 
 ## Muse graceful fallback
 

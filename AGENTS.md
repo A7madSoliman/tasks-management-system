@@ -10,6 +10,12 @@ Read this file before changing the repository. These rules apply to every coding
 - A configured lane is not authorization to use it. During Phase 0, do not invoke agy. Do not begin Phase 1, scaffold Next.js, install packages, or implement features without explicit user approval.
 - Do not create a Codex delegation lane. Codex remains outside the fleet.
 
+## Spec Kit governance
+
+- Meaningful feature specifications are evidence-first: cite verified requirements, exact Figma nodes when UI is involved, and verified API/backend evidence when integration is involved. Do not invent missing behavior; preserve unresolved gaps for Codex.
+- Spec Kit creates and reviews planning artifacts only. `$speckit-implement`, `$speckit-taskstoissues`, and `$speckit-converge` are excluded from normal Taskly use and cannot bypass Delegate Skill, agy, or Codex authority.
+- Typo-only changes, tiny visual corrections, narrow test-only fixes, and trivial maintenance are exempt from the full Spec Kit path only when Codex classifies them as non-meaningful.
+
 ## Required technical direction
 
 - Use the latest stable Next.js with the App Router, strict TypeScript, Tailwind CSS, React Hook Form, Zod, SVGR, and sonner when the relevant capability is implemented.
