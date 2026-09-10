@@ -225,11 +225,16 @@ describe("profile helpers & mapper (T004)", () => {
         { job_title: 42, department: "Engineering" },
         "Engineering",
       ],
-    ])("uses department legacy fallback for %s", (_label, metadata, expected) => {
-      expect(
-        mapShellUserProfile({ user_metadata: { name: "Ahmed", ...metadata } }),
-      ).toMatchObject({ jobTitle: expected });
-    });
+    ])(
+      "uses department legacy fallback for %s",
+      (_label, metadata, expected) => {
+        expect(
+          mapShellUserProfile({
+            user_metadata: { name: "Ahmed", ...metadata },
+          }),
+        ).toMatchObject({ jobTitle: expected });
+      },
+    );
 
     it("omits title when neither title field is valid", () => {
       expect(
