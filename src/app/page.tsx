@@ -1,11 +1,5 @@
-import { RecoveryFragmentBootstrap } from "@/features/auth/components/RecoveryFragmentBootstrap";
+import { RootRouteBootstrap } from "@/features/auth/components/RootRouteBootstrap";
 
 export default function Home() {
-  return (
-    <main>
-      <RecoveryFragmentBootstrap />
-      <h1>Taskly</h1>
-      <p>Application scaffold is ready.</p>
-    </main>
-  );
+  return <RootRouteBootstrap />;
 }
